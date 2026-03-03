@@ -1,0 +1,91 @@
+Imagine
+John Lennon
+
+
+Tom: G
+
+(intro 2x)
+    G/D         G7M C
+E|------------------------------------------|
+B|-------------0--------------------0-------|
+G|-0---0---0---0---2---2---2---2-3----------|
+D|-2---2---2-----2-3---3---3----------------|
+A|-3-3---3---3-3---3-3---3---3--------------|
+E|-3---------------1------------------------|
+
+
+(1ª parte - mesmo dedilhado da intro):
+G                   G7M   C
+   Imagine there's no heaven
+G                G7M  C
+   It's easy if you try
+G           G7M  C
+   No hell below us
+G            G7M    C
+    Above us only sky
+
+(refrão)
+C          Em/B          Am7   Am/G
+   Imagine all the people
+ D            D7
+Living for today a-hah
+
+(1ª parte - variação I):
+G                   G7M     C
+   Imagine there's no countries
+G                 G7M  C
+   It isn't hard to do
+G                  G7M C
+   Nothing to kill or die for
+ G             G7M   C
+   And no religion too
+
+C          Em/B          Am7   Am/G
+   Imagine all the people
+    D              D7
+   Living life in peace yu-huh
+
+(2ª parte)
+C           D          G      G7M  B  B7
+   You may say I'm a dreamer
+C           D               G  G7M  B  B7
+   But I'm not the only one
+C              D          G      G7M  B  B7
+   I hope someday you'll join us
+C           D          G
+   And the world will be as one
+
+(passagem e variação do dedilhado da 1ª parte)
+                G
+E|------------------------------------------|
+B|-------------1---1---1---0----------------|
+G|-------------0---0---0---0----------------|
+D|-------------2-2---2---2---2--------------|
+A|---3---3---3-3---3---3---3----------------|
+E|-3---5---7--------------------------------|
+
+
+(1ª parte - variação II)
+G              G7M   C
+   Imagine no possessions
+G               G7M C
+   I wonder if you can
+G                    G7M    C
+   No need for greed or hunger
+G                G7M    C
+   A brotherhood of man
+
+C          Em/B          Am7   Am/G
+   Imagine all the people
+  D              D7
+Sharing all the world yu-huh
+
+C           D          G      G7M  B  B7
+   You may say I'm a dreamer
+C           D               G  G7M  B  B7
+   But I'm not the only one
+C              D          G      G7M  B  B7
+   I hope someday you'll join us
+C           D          G
+   And the world will be as one
+
