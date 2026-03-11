@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSongs } from '../contexts/SongContext';
@@ -9,6 +9,17 @@ function Library() {
     const { songs } = useSongs();
     const [searchQuery, setSearchQuery] = useState('');
     const { t } = useTranslation();
+
+    useEffect(() => {
+        const savedScroll = sessionStorage.getItem('library-scroll');
+        if (savedScroll) {
+            window.scrollTo(0, parseInt(savedScroll, 10));
+        }
+    }, [songs]); // Re-run when songs load to ensure content is there
+
+    const handleSongClick = () => {
+        sessionStorage.setItem('library-scroll', window.scrollY.toString());
+    };
 
     const filteredSongs = songs.filter(song => {
         const query = searchQuery.toLowerCase();
@@ -65,6 +76,8 @@ function Library() {
                             <Link
                                 key={song.id}
                                 to={`/song/viewer?id=${song.id}`}
+                                onClick={handleSongClick}
+                                state={{ from: '/library' }}
                                 className="group flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary/50 dark:hover:border-primary/50 transition-all active:scale-[0.99]"
                             >
                                 {/* Key Badge */}

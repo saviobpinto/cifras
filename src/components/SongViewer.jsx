@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../lib/utils';
 import { parseChordPro, transposeNote } from '../lib/music';
@@ -7,6 +7,7 @@ import { useSongs } from '../contexts/SongContext';
 
 function SongViewer() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [searchParams] = useSearchParams();
     const songId = searchParams.get('id');
     const setlistId = searchParams.get('setlistId');
@@ -251,7 +252,7 @@ function SongViewer() {
 
             {/* Header */}
             <header className="flex-none z-20 w-full bg-surface-dark/90 backdrop-blur-md border-b border-white/5 px-4 py-3 flex items-center justify-between">
-                <button onClick={() => navigate(setlistId ? `/setlist/${setlistId}` : '/dashboard')} className="flex items-center justify-center size-10 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                <button onClick={() => navigate(location.state?.from || (setlistId ? `/setlist/${setlistId}` : '/library'))} className="flex items-center justify-center size-10 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
                     <span className="material-symbols-outlined">arrow_back</span>
                 </button>
                 <div className="flex-1 flex flex-col items-center justify-center mx-2 overflow-hidden">

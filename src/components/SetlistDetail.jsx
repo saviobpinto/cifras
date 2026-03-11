@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useSongs } from '../contexts/SongContext';
@@ -8,6 +8,13 @@ function SetlistDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { setlists, songs, reorderSetlist, deleteSetlist, removeFromSetlist, setCurrentSong, updateSetlist } = useSongs();
+
+    useEffect(() => {
+        const savedScroll = sessionStorage.getItem(`setlist-scroll-${id}`);
+        if (savedScroll) {
+            window.scrollTo(0, parseInt(savedScroll, 10));
+        }
+    }, [id]);
 
     const setlist = setlists.find(s => s.id === id);
 
@@ -66,8 +73,9 @@ function SetlistDetail() {
     };
 
     const handlePlaySong = (song) => {
+        sessionStorage.setItem(`setlist-scroll-${id}`, window.scrollY.toString());
         setCurrentSong(song);
-        navigate(`/song/viewer?id=${song.id}&setlistId=${setlist.id}`);
+        navigate(`/song/viewer?id=${song.id}&setlistId=${setlist.id}`, { state: { from: `/setlist/${id}` } });
     };
 
     return (
