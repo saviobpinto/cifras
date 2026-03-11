@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 import { useSongs } from '../contexts/SongContext';
@@ -22,6 +22,8 @@ const GENRES = [
 function SongEditor() {
     const navigate = useNavigate();
     const { id } = useParams(); // Get ID from URL if editing
+    const [searchParams] = useSearchParams();
+    const setlistId = searchParams.get('setlistId');
     const { addSong, updateSong, deleteSong, getSong } = useSongs();
     const { t } = useTranslation();
     const textareaRef = useRef(null);
@@ -70,10 +72,13 @@ function SongEditor() {
                 dataToSave.transposition = 0; // Reset transposition if base key changes
             }
             updateSong(id, dataToSave);
+            // After saving, go back to the viewer for this song, preserving setlist context
+            navigate(`/song/viewer?id=${id}${setlistId ? `&setlistId=${setlistId}` : ''}`);
         } else {
             addSong(dataToSave);
+            // For new songs, if we came from no particular context, library is a good default
+            navigate('/library');
         }
-        navigate('/dashboard');
     };
 
     const insertTextToContent = (text) => {
@@ -249,7 +254,12 @@ function SongEditor() {
                                 onClick={() => {
                                     if (confirm(t('editor.deleteConfirm'))) {
                                         deleteSong(id);
-                                        navigate('/dashboard');
+                                        // Redirect based on whether we were in a setlist or just library
+                                        if (setlistId) {
+                                            navigate(`/setlist/${setlistId}`);
+                                        } else {
+                                            navigate('/library');
+                                        }
                                     }
                                 }}
                                 className="w-full py-3 rounded-xl border border-red-500/30 text-red-500 hover:bg-red-500/10 font-bold transition-colors"
@@ -264,15 +274,33 @@ function SongEditor() {
             <div className="flex-none bg-surface-dark border-t border-border-dark z-30 pb-safe">
                 {/* Scrollable Toolbar */}
                 <div className="flex items-center gap-2 overflow-x-auto no-scrollbar px-4 py-3">
-                    <button onClick={() => insertTextToContent('[]')} className="flex-shrink-0 h-10 px-4 bg-surface-darker hover:bg-slate-800 border border-border-dark rounded-lg text-slate-300 font-mono font-medium text-sm transition-colors flex items-center justify-center">
+                    <button
+                        onMouseDown={(e) => { e.preventDefault(); insertTextToContent('[]'); }}
+                        className="flex-shrink-0 h-10 px-4 bg-surface-darker hover:bg-slate-800 border border-border-dark rounded-lg text-slate-300 font-mono font-medium text-sm transition-colors flex items-center justify-center"
+                    >
                         [ ]
                     </button>
                     <div className="w-px h-6 bg-border-dark mx-1 flex-shrink-0"></div>
-                    <button onClick={() => insertTextToContent('#')} aria-label="Sharp" className="flex-shrink-0 h-10 w-10 bg-surface-darker hover:bg-slate-800 border border-border-dark rounded-lg text-slate-300 transition-colors flex items-center justify-center">
+                    <button
+                        onMouseDown={(e) => { e.preventDefault(); insertTextToContent('#'); }}
+                        aria-label="Sharp"
+                        className="flex-shrink-0 h-10 w-10 bg-surface-darker hover:bg-slate-800 border border-border-dark rounded-lg text-slate-300 transition-colors flex items-center justify-center"
+                    >
                         <span className="font-bold text-lg">♯</span>
                     </button>
-                    <button onClick={() => insertTextToContent('b')} aria-label="Flat" className="flex-shrink-0 h-10 w-10 bg-surface-darker hover:bg-slate-800 border border-border-dark rounded-lg text-slate-300 transition-colors flex items-center justify-center">
+                    <button
+                        onMouseDown={(e) => { e.preventDefault(); insertTextToContent('b'); }}
+                        aria-label="Flat"
+                        className="flex-shrink-0 h-10 w-10 bg-surface-darker hover:bg-slate-800 border border-border-dark rounded-lg text-slate-300 transition-colors flex items-center justify-center"
+                    >
                         <span className="font-bold text-lg">♭</span>
+                    </button>
+                    <button
+                        onMouseDown={(e) => { e.preventDefault(); insertTextToContent('P{10}'); }}
+                        aria-label="Pause"
+                        className="flex-shrink-0 h-10 px-3 bg-surface-darker hover:bg-slate-800 border border-border-dark rounded-lg text-slate-300 transition-colors flex items-center justify-center"
+                    >
+                        <span className="font-bold text-sm">Pause</span>
                     </button>
                     <div className="w-px h-6 bg-border-dark mx-1 flex-shrink-0"></div>
                     {/* ... other helper buttons */}

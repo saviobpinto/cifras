@@ -17,7 +17,10 @@ function SongViewer() {
     const [isPlaying, setIsPlaying] = useState(false);
     const [scrollSpeed, setScrollSpeed] = useState(1);
     const [fontSize, setFontSize] = useState(14);
+    const [pauseTimeRemaining, setPauseTimeRemaining] = useState(0);
     const scrollContainerRef = useRef(null);
+    const lineRefs = useRef([]);
+    const triggeredPauses = useRef(new Set());
 
     const [transpose, setTranspose] = useState(0);
     const [parsedLines, setParsedLines] = useState([]);
@@ -111,18 +114,50 @@ function SongViewer() {
         let intervalId;
         if (isPlaying && scrollContainerRef.current) {
             intervalId = setInterval(() => {
+                // If we are in a pause, just decrement the timer
+                if (pauseTimeRemaining > 0) {
+                    setPauseTimeRemaining(prev => Math.max(0, prev - 50)); // We run every 50ms
+                    return;
+                }
+
+                const container = scrollContainerRef.current;
+                const scrollTop = container.scrollTop;
+
+                // Check for pause points
+                if (lineRefs.current) {
+                    for (let i = 0; i < parsedLines.length; i++) {
+                        const line = parsedLines[i];
+                        if (line.pause > 0 && !triggeredPauses.current.has(i)) {
+                            const element = lineRefs.current[i];
+                            if (element) {
+                                // Calculate position relative to container top
+                                // We use a small threshold because precision varies
+                                if (element.offsetTop <= scrollTop + 5) {
+                                    setPauseTimeRemaining(line.pause * 1000);
+                                    triggeredPauses.current.add(i);
+                                    return; // Don't scroll this frame
+                                }
+                            }
+                        }
+                    }
+                }
+
                 scrollAccumulator.current += 1 * scrollSpeed;
                 if (scrollAccumulator.current >= 1) {
                     const pixelsToScroll = Math.floor(scrollAccumulator.current);
-                    scrollContainerRef.current.scrollTop += pixelsToScroll;
+                    container.scrollTop += pixelsToScroll;
                     scrollAccumulator.current -= pixelsToScroll;
                 }
             }, 50);
         } else {
             scrollAccumulator.current = 0; // Reset accumulator when stopped
+            if (!isPlaying) {
+                triggeredPauses.current.clear(); // Clear pauses so they can re-trigger next time
+                setPauseTimeRemaining(0);
+            }
         }
         return () => clearInterval(intervalId);
-    }, [isPlaying, scrollSpeed]);
+    }, [isPlaying, scrollSpeed, pauseTimeRemaining, parsedLines]);
 
     const togglePlay = () => setIsPlaying(!isPlaying);
 
@@ -232,7 +267,7 @@ function SongViewer() {
                     </div>
                 </div>
                 <div className="flex items-center gap-1">
-                    <Link to={`/song/edit/${song.id}`} className="flex items-center justify-center size-10 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                    <Link to={`/song/edit/${song.id}${setlistId ? `?setlistId=${setlistId}` : ''}`} className="flex items-center justify-center size-10 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
                         <span className="material-symbols-outlined text-[20px]">edit</span>
                     </Link>
                     <button onClick={() => setShowSetlistModal(true)} className="flex items-center justify-center size-10 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
@@ -278,27 +313,53 @@ function SongViewer() {
                         {parsedLines.map((line, i) => {
                             if (line.type === 'section') {
                                 return (
-                                    <p key={i} className="mt-8 mb-4 text-primary/80 font-bold text-xs uppercase tracking-widest font-sans bg-slate-100 dark:bg-white/5 inline-block px-2 py-1 rounded">
-                                        {line.label}
+                                    <p
+                                        key={i}
+                                        ref={el => lineRefs.current[i] = el}
+                                        className="mt-8 mb-4 text-primary/80 font-bold text-xs uppercase tracking-widest font-sans bg-slate-100 dark:bg-white/5 inline-block px-2 py-1 rounded"
+                                    >
+                                        {line.label} {line.pause > 0 && <span className="ml-2 text-[10px] opacity-60">({line.pause}s pause)</span>}
                                     </p>
                                 );
                             }
 
                             if (line.type === 'lyrics') {
-                                return <p key={i} className="mb-2 whitespace-pre-wrap text-slate-900 dark:text-slate-100">{line.content}</p>;
+                                return (
+                                    <p
+                                        key={i}
+                                        ref={el => lineRefs.current[i] = el}
+                                        className="mb-2 whitespace-pre-wrap text-slate-900 dark:text-slate-100"
+                                    >
+                                        {line.content} {line.pause > 0 && <span className="ml-2 text-[10px] text-primary/60">(pause {line.pause}s)</span>}
+                                    </p>
+                                );
                             }
 
                             // Render Line with Chords
                             const hasLyricsText = line.segments.some(segment => segment.lyrics && segment.lyrics.trim() !== '');
 
                             return (
-                                <div key={i} className={`whitespace-pre-wrap break-words ${hasLyricsText ? 'mt-2 mb-4 leading-[2.5]' : 'mb-0 leading-normal h-[1.5em]'}`}>
+                                <div
+                                    key={i}
+                                    ref={el => lineRefs.current[i] = el}
+                                    className={`whitespace-pre-wrap break-words ${hasLyricsText ? 'mt-2 mb-4 leading-[2.5]' : 'mt-4 mb-2 leading-normal'}`}
+                                >
+                                    {line.pause > 0 && <div className="text-[10px] text-primary/60 mb-1 opacity-60">(pause {line.pause}s)</div>}
                                     {line.segments.map((segment, j) => {
                                         const transposedChord = segment.chord
                                             ? transposeNote(segment.chord, transpose)
                                             : null;
 
                                         const segmentLyrics = segment.lyrics || '';
+
+                                        if (!hasLyricsText) {
+                                            return (
+                                                <React.Fragment key={j}>
+                                                    {transposedChord && <span className="text-primary font-bold">{transposedChord}</span>}
+                                                    <span className="text-slate-900 dark:text-slate-100">{segmentLyrics}</span>
+                                                </React.Fragment>
+                                            );
+                                        }
 
                                         return (
                                             <React.Fragment key={j}>
@@ -387,7 +448,7 @@ function SongViewer() {
                         <div className="relative flex-1 h-8 flex items-center group">
                             <input
                                 type="range"
-                                min="0.5"
+                                min="0.1"
                                 max="3"
                                 step="0.1"
                                 value={scrollSpeed}

@@ -8,19 +8,29 @@ export function parseChordPro(text) {
 
     const lines = text.split('\n');
     return lines.map(line => {
+        let currentLine = line;
+        let pauseSeconds = 0;
+
+        // Check for pause marker P{seconds}
+        const pauseMatch = currentLine.match(/P\{(\d+)\}/);
+        if (pauseMatch) {
+            pauseSeconds = parseInt(pauseMatch[1], 10);
+            currentLine = currentLine.replace(/P\{\d+\}/, '');
+        }
+
         // Check if line is a section header [Chorus], [Verse] etc.
-        const sectionMatch = line.match(/^\[(Verse|Chorus|Bridge|Outro|Intro).*\]$/i);
+        const sectionMatch = currentLine.trim().match(/^\[(Verse|Chorus|Bridge|Outro|Intro|Solo|Instrumental|Refrão|Ponte|Ending)\]$/i);
         if (sectionMatch) {
-            return { type: 'section', label: line.replace(/[\[\]]/g, '') };
+            return { type: 'section', label: sectionMatch[1], pause: pauseSeconds };
         }
 
         // Check if line has chords
-        if (!line.includes('[')) {
-            return { type: 'lyrics', content: line };
+        if (!currentLine.includes('[')) {
+            return { type: 'lyrics', content: currentLine, pause: pauseSeconds };
         }
 
         // Split by regex capturing group
-        const parts = line.split(/(\[[^\]]+\])/);
+        const parts = currentLine.split(/(\[[^\]]+\])/);
         // parts will be: ["Lyrics ", "[Am]", " more lyrics ", "[G]", ""]
 
         const lineSegments = [];
@@ -44,13 +54,13 @@ export function parseChordPro(text) {
                 }
 
                 lineSegments.push({ chord, lyrics });
-            } else if (part.trim() !== '') {
-                // It's leading lyrics (no chord before it)
+            } else if (part.trim() !== '' || part.length > 0) {
+                // It's leading lyrics or space
                 lineSegments.push({ chord: null, lyrics: part });
             }
         }
 
-        return { type: 'line', segments: lineSegments };
+        return { type: 'line', segments: lineSegments, pause: pauseSeconds };
     });
 }
 
