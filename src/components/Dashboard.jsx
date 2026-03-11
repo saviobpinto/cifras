@@ -98,16 +98,15 @@ function Dashboard() {
 
                         <div className="flex flex-col gap-3">
                             {setlists.map(setlist => (
-                                <Link to={`/setlist/${setlist.id}`} key={setlist.id} className="group flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-800 active:border-primary dark:active:border-primary transition-colors cursor-pointer relative">
-                                    <div className="flex flex-col items-center justify-center size-12 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary shrink-0">
-                                        <span className="text-xs font-bold leading-none">{new Date(setlist.date).toLocaleString('default', { month: 'short' }).toUpperCase()}</span>
-                                        <span className="text-lg font-bold leading-none">{new Date(setlist.date).getDate()}</span>
+                                <Link to={`/setlist/${setlist.id}`} key={setlist.id} className="group flex items-center gap-3 p-3.5 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-800 active:border-primary dark:active:border-primary transition-colors cursor-pointer relative">
+                                    <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10 dark:bg-primary/20 text-primary shrink-0 transition-transform group-hover:scale-110">
+                                        <span className="material-symbols-outlined text-[20px]">queue_music</span>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <h4 className="text-base font-bold text-slate-900 dark:text-white truncate">{setlist.title}</h4>
-                                        <div className="flex items-center gap-3 mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                                    <div className="flex-1 min-w-0 px-1">
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">{setlist.title}</h4>
+                                        <div className="flex items-center gap-3 mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                             <span className="flex items-center gap-1">
-                                                <span className="material-symbols-outlined text-[14px]">music_note</span> {setlist.songs.length} {t('dashboard.songs')}
+                                                <span className="material-symbols-outlined text-[12px]">music_note</span> {setlist.songs.length} {t('dashboard.songs')}
                                             </span>
                                         </div>
                                     </div>
