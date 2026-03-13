@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { cn } from '../lib/utils';
 import { parseChordPro, transposeNote } from '../lib/music';
 import { useSongs } from '../contexts/SongContext';
+import ChordTooltip from './ChordTooltip';
 
 function SongViewer() {
     const navigate = useNavigate();
@@ -356,7 +357,11 @@ function SongViewer() {
                                         if (!hasLyricsText) {
                                             return (
                                                 <React.Fragment key={j}>
-                                                    {transposedChord && <span className="text-primary font-bold">{transposedChord}</span>}
+                                                    {transposedChord && (
+                                                        <ChordTooltip chordName={transposedChord}>
+                                                            <span className="text-primary font-bold">{transposedChord}</span>
+                                                        </ChordTooltip>
+                                                    )}
                                                     <span className="text-slate-900 dark:text-slate-100">{segmentLyrics}</span>
                                                 </React.Fragment>
                                             );
@@ -367,7 +372,9 @@ function SongViewer() {
                                                 {transposedChord && (
                                                     <span className="relative inline-block w-0 h-0 align-baseline">
                                                         <span className="absolute left-0 bottom-0 -translate-y-[1.25em] text-primary font-bold text-[0.9em] leading-none whitespace-nowrap">
-                                                            {transposedChord}
+                                                            <ChordTooltip chordName={transposedChord}>
+                                                                {transposedChord}
+                                                            </ChordTooltip>
                                                         </span>
                                                     </span>
                                                 )}
