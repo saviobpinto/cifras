@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import NoSleep from 'nosleep.js';
+import { get, set } from 'idb-keyval';
 
 const SongContext = createContext();
 
@@ -48,17 +49,29 @@ You're my [Em7]wonderwall [Cadd9] [Em7] [G] [Em7]`,
 };
 
 export function SongProvider({ children }) {
-    const [songs, setSongs] = useState(() => {
-        const saved = localStorage.getItem('cifras-app-songs');
-        return saved ? JSON.parse(saved) : [DEFAULT_SONG];
-    });
+    const [songs, setSongs] = useState([DEFAULT_SONG]);
 
-    const [setlists, setSetlists] = useState(() => {
-        const saved = localStorage.getItem('cifras-app-setlists');
-        return saved ? JSON.parse(saved) : [
-            { id: 'demo', title: 'Friday Gig', date: new Date().toISOString(), songs: ['1'] }
-        ];
-    });
+    const [setlists, setSetlists] = useState([
+        { id: 'demo', title: 'Friday Gig', date: new Date().toISOString(), songs: ['1'] }
+    ]);
+
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    useEffect(() => {
+        async function loadData() {
+            try {
+                const savedSongs = await get('cifras-app-songs');
+                if (savedSongs) setSongs(savedSongs);
+                const savedSetlists = await get('cifras-app-setlists');
+                if (savedSetlists) setSetlists(savedSetlists);
+            } catch (err) {
+                console.error("IDB load error", err);
+            } finally {
+                setIsLoaded(true);
+            }
+        }
+        loadData();
+    }, []);
 
     const [currentSong, setCurrentSong] = useState(null);
 
@@ -74,12 +87,16 @@ export function SongProvider({ children }) {
     });
 
     useEffect(() => {
-        localStorage.setItem('cifras-app-songs', JSON.stringify(songs));
-    }, [songs]);
+        if (isLoaded) {
+            set('cifras-app-songs', songs).catch(err => console.error("IDB save error", err));
+        }
+    }, [songs, isLoaded]);
 
     useEffect(() => {
-        localStorage.setItem('cifras-app-setlists', JSON.stringify(setlists));
-    }, [setlists]);
+        if (isLoaded) {
+            set('cifras-app-setlists', setlists).catch(err => console.error("IDB save error", err));
+        }
+    }, [setlists, isLoaded]);
 
     useEffect(() => {
         const root = window.document.documentElement;

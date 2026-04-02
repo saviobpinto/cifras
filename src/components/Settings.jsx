@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useSongs } from '../contexts/SongContext';
 
-import { ipadSongs } from '../data/ipadSongs';
+// Static import removed to lazily load huge dataset
+// import { ipadSongs } from '../data/ipadSongs';
 
 function Settings() {
     const navigate = useNavigate();
@@ -36,9 +37,18 @@ function Settings() {
         e.target.value = null;
     };
 
-    const handleImportIpad = () => {
-        importSongs(ipadSongs);
-        setImportMessage("Catálogo importado com sucesso!");
+    const handleImportIpad = async () => {
+        setImportMessage("Baixando catálogo...");
+        try {
+            const response = await fetch('/ipadSongs.json');
+            if (!response.ok) throw new Error('Falha ao baixar catálogo');
+            const data = await response.json();
+            importSongs(data);
+            setImportMessage("Catálogo importado com sucesso!");
+        } catch (error) {
+            console.error(error);
+            setImportMessage("Erro ao importar o catálogo");
+        }
         setTimeout(() => setImportMessage(''), 3000);
     };
 

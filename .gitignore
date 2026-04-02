@@ -24,3 +24,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Data folders that crash Tailwind CSS compiler
+/iPadSongs
+/public/ipadSongs.json
+
+PromptCompraVendaNFT.rtf

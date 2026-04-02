@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useDeferredValue, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSongs } from '../contexts/SongContext';
@@ -21,14 +21,34 @@ function Library() {
         sessionStorage.setItem('library-scroll', window.scrollY.toString());
     };
 
-    const filteredSongs = songs.filter(song => {
-        const query = searchQuery.toLowerCase();
-        return (
-            song.title.toLowerCase().includes(query) ||
-            song.artist.toLowerCase().includes(query) ||
-            song.content.toLowerCase().includes(query)
-        );
-    }).sort((a, b) => a.title.localeCompare(b.title));
+    const deferredQuery = useDeferredValue(searchQuery);
+    const [displayCount, setDisplayCount] = useState(50);
+
+    const filteredSongs = useMemo(() => {
+        const query = deferredQuery.toLowerCase().trim();
+        let results = songs;
+
+        if (query) {
+            results = songs.filter(song =>
+                song.title.toLowerCase().includes(query) ||
+                song.artist.toLowerCase().includes(query)
+            );
+        }
+
+        // Only sort the necessary slice to avoid sorting 30k items whenever possible
+        // Actually, if query is empty, songs might already be sorted.
+        // Let's sort all results first, it's fast enough for just titles
+        results = results.sort((a, b) => a.title.localeCompare(b.title));
+        
+        return results;
+    }, [songs, deferredQuery]);
+
+    const displayedSongs = filteredSongs.slice(0, displayCount);
+
+    // Reset display count when search changes
+    useEffect(() => {
+        setDisplayCount(50);
+    }, [deferredQuery]);
 
     return (
         <div className="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col antialiased">
@@ -70,9 +90,9 @@ function Library() {
             </div>
 
             <main className="flex-1 p-4 pb-24 max-w-2xl mx-auto w-full">
-                {filteredSongs.length > 0 ? (
+                {displayedSongs.length > 0 ? (
                     <div className="space-y-3">
-                        {filteredSongs.map(song => (
+                        {displayedSongs.map(song => (
                             <Link
                                 key={song.id}
                                 to={`/song/viewer?id=${song.id}`}
@@ -93,6 +113,15 @@ function Library() {
                                 <span className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors">chevron_right</span>
                             </Link>
                         ))}
+
+                        {filteredSongs.length > displayedSongs.length && (
+                            <button
+                                onClick={() => setDisplayCount(c => c + 50)}
+                                className="w-full py-3 mt-4 text-sm font-bold text-primary bg-primary/10 hover:bg-primary/20 rounded-xl transition-colors"
+                            >
+                                Carregar mais...
+                            </button>
+                        )}
                     </div>
                 ) : (
                     <div className="text-center py-20">
