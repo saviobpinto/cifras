@@ -7,8 +7,14 @@ import { transposeNote } from '../lib/music';
 function Library() {
     const navigate = useNavigate();
     const { songs } = useSongs();
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(() => {
+        return sessionStorage.getItem('library-search') || '';
+    });
     const { t } = useTranslation();
+
+    useEffect(() => {
+        sessionStorage.setItem('library-search', searchQuery);
+    }, [searchQuery]);
 
     useEffect(() => {
         const savedScroll = sessionStorage.getItem('library-scroll');
@@ -37,8 +43,12 @@ function Library() {
 
         // Only sort the necessary slice to avoid sorting 30k items whenever possible
         // Actually, if query is empty, songs might already be sorted.
-        // Let's sort all results first, it's fast enough for just titles
-        results = results.sort((a, b) => a.title.localeCompare(b.title));
+        // Let's sort all results first by artist, then by title
+        results = results.sort((a, b) => {
+            const artistCompare = a.artist.localeCompare(b.artist);
+            if (artistCompare !== 0) return artistCompare;
+            return a.title.localeCompare(b.title);
+        });
         
         return results;
     }, [songs, deferredQuery]);
