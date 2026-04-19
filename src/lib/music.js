@@ -185,5 +185,9 @@ export function formatChords(text) {
         }
     }
 
-    return resultLines.join('\n');
+    let finalContent = resultLines.join('\n');
+    finalContent = finalContent.replace(/\[\[(.*?)\]\]/g, '[$1]');
+    finalContent = finalContent.replace(/\[intro\]/gi, '[intro]');
+
+    return finalContent;
 }

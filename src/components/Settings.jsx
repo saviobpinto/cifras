@@ -8,7 +8,7 @@ import { useSongs } from '../contexts/SongContext';
 
 function Settings() {
     const navigate = useNavigate();
-    const { theme, toggleTheme, importSongs, clearAllSongs, keepAwake, toggleKeepAwake, exportSetlists, importData } = useSongs();
+    const { theme, toggleTheme, importSongs, clearAllSongs, keepAwake, toggleKeepAwake, exportSetlists, importData, setlists } = useSongs();
     const { t, i18n } = useTranslation();
     const isDark = theme === 'dark';
 
@@ -17,6 +17,8 @@ function Settings() {
     };
 
     const [importMessage, setImportMessage] = useState('');
+    const [showExportModal, setShowExportModal] = useState(false);
+    const [selectedSetlists, setSelectedSetlists] = useState([]);
     const fileInputRef = useRef(null);
 
     const handleFileUpload = (e) => {
@@ -40,7 +42,7 @@ function Settings() {
     const handleImportIpad = async () => {
         setImportMessage("Baixando catálogo...");
         try {
-            const response = await fetch('/ipadSongs.json');
+            const response = await fetch(`/ipadSongs.json?t=${new Date().getTime()}`);
             if (!response.ok) throw new Error('Falha ao baixar catálogo');
             const data = await response.json();
             importSongs(data);
@@ -143,7 +145,7 @@ function Settings() {
                         <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-2">Dados</h3>
                         <div className="bg-surface-light dark:bg-surface-dark rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700/50 divide-y divide-slate-200 dark:divide-slate-700/50">
                             {/* Export Backup */}
-                            <div onClick={exportSetlists} className="flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors cursor-pointer group">
+                            <div onClick={() => setShowExportModal(true)} className="flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors cursor-pointer group">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500">
                                         <span className="material-symbols-outlined text-xl">upload</span>
@@ -205,6 +207,67 @@ function Settings() {
             {importMessage && (
                 <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 px-4 py-2 rounded-full shadow-lg z-[100] animate-fade-in text-sm font-medium whitespace-nowrap">
                     {importMessage}
+                </div>
+            )}
+
+            {/* Export Modal */}
+            {showExportModal && (
+                <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-surface-light dark:bg-surface-dark w-full max-w-sm rounded-2xl shadow-xl overflow-hidden animate-slide-up flex flex-col max-h-[80vh]">
+                        <div className="p-4 border-b border-border-light dark:border-border-dark flex justify-between items-center bg-surface-light dark:bg-surface-dark">
+                            <h3 className="font-bold text-lg">Exportar Backup</h3>
+                            <button onClick={() => setShowExportModal(false)} className="text-slate-500 hover:text-slate-800 dark:hover:text-white">
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                        <div className="p-4 overflow-y-auto min-h-[50px] no-scrollbar">
+                            {setlists.length === 0 ? (
+                                <p className="text-sm text-slate-500">Nenhum setlist encontrado.</p>
+                            ) : (
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer" onClick={() => {
+                                        if (selectedSetlists.length === setlists.length) setSelectedSetlists([]);   
+                                        else setSelectedSetlists(setlists.map(s => s.id));
+                                    }}>
+                                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedSetlists.length === setlists.length ? 'bg-primary border-primary' : 'border-slate-400'}`}>
+                                            {selectedSetlists.length === setlists.length && <span className="material-symbols-outlined text-white text-[16px]">check</span>}
+                                        </div>
+                                        <span className="font-bold text-sm">Selecionar Todos</span>
+                                    </div>
+                                    <div className="h-px bg-slate-200 dark:bg-slate-700 w-full my-2"></div>
+                                    {setlists.map(sl => (
+                                        <div key={sl.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer" onClick={() => {
+                                            if (selectedSetlists.includes(sl.id)) setSelectedSetlists(prev => prev.filter(id => id !== sl.id));
+                                            else setSelectedSetlists(prev => [...prev, sl.id]);
+                                        }}>
+                                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedSetlists.includes(sl.id) ? 'bg-primary border-primary' : 'border-slate-400'}`}>
+                                                {selectedSetlists.includes(sl.id) && <span className="material-symbols-outlined text-white text-[16px]">check</span>}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-sm">{sl.title}</span>
+                                                <span className="text-xs text-slate-500">{sl.songs.length} músicas</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-4 border-t border-border-light dark:border-border-dark flex flex-col gap-3">
+                            <button 
+                                onClick={() => { exportSetlists(); setShowExportModal(false); }} 
+                                className="w-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white py-3 rounded-xl font-bold transition-all text-sm"
+                            >
+                                Exportar Tudo (Biblioteca Completa)
+                            </button>
+                            <button 
+                                disabled={selectedSetlists.length === 0 && setlists.length > 0}
+                                onClick={() => { exportSetlists(selectedSetlists); setShowExportModal(false); }} 
+                                className="w-full bg-primary hover:bg-primary-light text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 text-sm"
+                            >
+                                Exportar Selecionados ({selectedSetlists.length})
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

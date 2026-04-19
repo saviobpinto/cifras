@@ -112,9 +112,48 @@ function SongEditor() {
             const result = event.target.result;
             const fileName = file.name.replace(/\.[^/.]+$/, "");
 
+            let extractedKey = "";
+            const lines = result.split('\n');
+            for(let i = 0; i < Math.min(lines.length, 10); i++) {
+                const lLow = lines[i].toLowerCase();
+                if (lLow.startsWith('tom:')) {
+                    const match = lines[i].match(/tom:\s*([A-Ga-g][#b]?(?:m|m7|M7|7)?)/i);
+                    if (match) {
+                        extractedKey = match[1].charAt(0).toUpperCase() + match[1].slice(1);
+                        break;
+                    }
+                }
+            }
+
+            if (!extractedKey) {
+                const chordRegexTest = /^[A-G](?:#|b|♯|♭)?(?:m|maj|min|aug|dim|sus|add|M|°|ø|\+|[0-9]|b|#|-)*(?:[\(][\d\+\-b#a-zA-Z]+[\)])?(?:\/[A-G](?:#|b|♯|♭)?)?$/;
+                for(let i = 0; i < lines.length; i++) {
+                    if (!lines[i].includes('[')) { 
+                        const words = lines[i].trim().split(/\s+/).filter(w => w);
+                        if (words.length > 0) {
+                            const potentialChords = words.filter(w => chordRegexTest.test(w));
+                            if (potentialChords.length > 0 && potentialChords.length / words.length >= 0.5) {
+                                const firstMatch = lines[i].match(/(?:^|\s|\(|\[)([A-Ga-g][#b]?m?)/);
+                                if (firstMatch) {
+                                    extractedKey = firstMatch[1].charAt(0).toUpperCase() + firstMatch[1].slice(1);
+                                    break;
+                                }
+                            }
+                        }
+                    } else {
+                        const firstMatch = lines[i].match(/\[([A-Ga-g][#b]?m?)[^\]]*\]/);
+                        if (firstMatch) {
+                            extractedKey = firstMatch[1].charAt(0).toUpperCase() + firstMatch[1].slice(1);
+                            break;
+                        }
+                    }
+                }
+            }
+
             setFormData(prev => ({
                 ...prev,
                 content: result,
+                key: extractedKey || prev.key,
                 title: prev.title || fileName
             }));
         };

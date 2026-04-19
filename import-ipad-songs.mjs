@@ -33,6 +33,7 @@ function isChordLine(line) {
 function processContent(content) {
     const lines = content.split('\n');
     let formattedLines = [];
+    let extractedKey = "";
     let i = 0;
 
     // Filter out some header lines that we don't need in content if they duplicate metadata?
@@ -42,7 +43,14 @@ function processContent(content) {
         // check if it is part of header (Tom:, Artista:, Música:)
         if (i < 10) {
             const lLow = lines[i].toLowerCase();
-            if (lLow.startsWith('tom:') || lLow.startsWith('artista:') || lLow.startsWith('música:')) {
+            if (lLow.startsWith('tom:')) {
+                const match = lines[i].match(/tom:\s*([A-Ga-g][#b]?(?:m|m7|M7|7)?)/i);
+                if (match) {
+                    extractedKey = match[1].charAt(0).toUpperCase() + match[1].slice(1);
+                }
+                i++;
+                continue;
+            } else if (lLow.startsWith('artista:') || lLow.startsWith('música:')) {
                 i++;
                 continue;
             }
@@ -58,6 +66,15 @@ function processContent(content) {
         }
 
         if (isChordLine(line)) {
+            if (!extractedKey) {
+                // Deduce key from the first chord of the first chord line
+                const match = line.match(/(?:^|\s|\(|\[)([A-Ga-g][#b]?m?)/);
+                if (match) {
+                    let k = match[1];
+                    extractedKey = k.charAt(0).toUpperCase() + k.slice(1);
+                }
+            }
+
             const nextIdx = i + 1;
             if (nextIdx < lines.length) {
                 const nextLine = lines[nextIdx].replace(/\r$/, '');
@@ -102,7 +119,13 @@ function processContent(content) {
     while (formattedLines.length > 0 && formattedLines[0].trim() === '') formattedLines.shift();
     while (formattedLines.length > 0 && formattedLines[formattedLines.length - 1].trim() === '') formattedLines.pop();
 
-    return formattedLines.join('\n');
+    let finalContent = formattedLines.join('\n');
+    // Remove double brackets generated when original text already had brackets
+    finalContent = finalContent.replace(/\[\[(.*?)\]\]/g, '[$1]');
+    // Enforce lowercase [intro] as explicitly requested by user
+    finalContent = finalContent.replace(/\[intro\]/gi, '[intro]');
+
+    return { content: finalContent, key: extractedKey };
 }
 
 function processSongs() {
@@ -128,14 +151,17 @@ function processSongs() {
         const filePath = path.join(IPAD_SONGS_DIR, file);
         const originalContent = fs.readFileSync(filePath, 'utf-8');
 
-        const content = processContent(originalContent);
+        const processed = processContent(originalContent);
+        const content = processed.content;
+        // Basic cleanup on the key if needed, or take it directly
+        const songKey = processed.key || "";
 
         parsedSongs.push({
             id: uuidv4(),
             title: title,
             artist: artist,
             genre: "",
-            key: "",
+            key: songKey,
             bpm: 120,
             capo: 0,
             content: content,

@@ -86,16 +86,26 @@ export function SongProvider({ children }) {
         return val ? JSON.parse(val) : true;
     });
 
+    const saveSongsTimeout = useRef(null);
     useEffect(() => {
         if (isLoaded) {
-            set('cifras-app-songs', songs).catch(err => console.error("IDB save error", err));
+            if (saveSongsTimeout.current) clearTimeout(saveSongsTimeout.current);
+            saveSongsTimeout.current = setTimeout(() => {
+                set('cifras-app-songs', songs).catch(err => console.error("IDB save error", err));
+            }, 1000);
         }
+        return () => { if (saveSongsTimeout.current) clearTimeout(saveSongsTimeout.current); };
     }, [songs, isLoaded]);
 
+    const saveSetlistsTimeout = useRef(null);
     useEffect(() => {
         if (isLoaded) {
-            set('cifras-app-setlists', setlists).catch(err => console.error("IDB save error", err));
+            if (saveSetlistsTimeout.current) clearTimeout(saveSetlistsTimeout.current);
+            saveSetlistsTimeout.current = setTimeout(() => {
+                set('cifras-app-setlists', setlists).catch(err => console.error("IDB save error", err));
+            }, 1000);
         }
+        return () => { if (saveSetlistsTimeout.current) clearTimeout(saveSetlistsTimeout.current); };
     }, [setlists, isLoaded]);
 
     useEffect(() => {
@@ -212,7 +222,7 @@ export function SongProvider({ children }) {
             id: uuidv4(),
             lastEdited: new Date().toISOString()
         }));
-        setSongs([...songsToAdd, ...songs]);
+        setSongs(prev => [...songsToAdd, ...prev]);
     };
 
     const clearAllSongs = () => {
@@ -273,12 +283,22 @@ export function SongProvider({ children }) {
         }));
     };
 
-    const exportSetlists = () => {
+    const exportSetlists = (selectedSetlistIds = null) => {
+        let exportSetlistsData = setlists;
+        let exportSongsData = songs;
+
+        if (selectedSetlistIds && selectedSetlistIds.length > 0) {
+            exportSetlistsData = setlists.filter(s => selectedSetlistIds.includes(s.id));
+            const songIds = new Set();
+            exportSetlistsData.forEach(sl => sl.songs.forEach(id => songIds.add(id)));
+            exportSongsData = songs.filter(s => songIds.has(s.id));
+        }
+
         const payload = {
             version: 1,
             type: 'cifras-backup',
-            setlists: setlists,
-            songs: songs // Export everything to keep it simple, or we could filter by setlist songs
+            setlists: exportSetlistsData,
+            songs: exportSongsData
         };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
