@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { v4 as uuidv4 } from 'uuid';
 import NoSleep from 'nosleep.js';
 import { get, set } from 'idb-keyval';
+import { supabase } from '../lib/supabase';
+import { useAuth } from './AuthContext';
 
 const SongContext = createContext();
 
@@ -49,6 +51,7 @@ You're my [Em7]wonderwall [Cadd9] [Em7] [G] [Em7]`,
 };
 
 export function SongProvider({ children }) {
+    const { session, isOfflineMode } = useAuth();
     const [songs, setSongs] = useState([DEFAULT_SONG]);
 
     const [setlists, setSetlists] = useState([
@@ -56,6 +59,174 @@ export function SongProvider({ children }) {
     ]);
 
     const [isLoaded, setIsLoaded] = useState(false);
+
+    const [isCloudSynced, setIsCloudSynced] = useState(false);
+    const [syncProgress, setSyncProgress] = useState({ isSyncing: false, progress: 0, statusText: '' });
+
+    const manualSync = async () => {
+        if (!session?.user || isOfflineMode) return;
+        
+        setSyncProgress({ isSyncing: true, progress: 0, statusText: 'Iniciando sincronização...' });
+        
+        try {
+            setSyncProgress({ isSyncing: true, progress: 10, statusText: 'Baixando músicas da nuvem...' });
+            let allCloudSongs = [];
+            let from = 0;
+            let limit = 1000;
+            while (true) {
+                const { data, error } = await supabase
+                    .from('cifras_songs')
+                    .select('id, data, deleted')
+                    .eq('user_id', session.user.id)
+                    .range(from, from + limit - 1);
+                if (error) throw error;
+                if (data && data.length > 0) {
+                    allCloudSongs.push(...data);
+                    from += limit;
+                    if (data.length < limit) break;
+                } else {
+                    break;
+                }
+            }
+
+            setSyncProgress({ isSyncing: true, progress: 30, statusText: 'Baixando setlists da nuvem...' });
+            let allCloudSetlists = [];
+            from = 0;
+            while (true) {
+                const { data, error } = await supabase
+                    .from('cifras_setlists')
+                    .select('id, data, deleted')
+                    .eq('user_id', session.user.id)
+                    .range(from, from + limit - 1);
+                if (error) throw error;
+                if (data && data.length > 0) {
+                    allCloudSetlists.push(...data);
+                    from += limit;
+                    if (data.length < limit) break;
+                } else {
+                    break;
+                }
+            }
+
+            setSyncProgress({ isSyncing: true, progress: 40, statusText: 'Mesclando dados...' });
+            
+            // Merge Songs
+            let validCloudSongs = allCloudSongs.filter(s => !s.deleted).map(s => s.data);
+            let cloudMap = new Map(validCloudSongs.map(s => [s.id, s]));
+            let mergedSongsMap = new Map();
+            songs.forEach(s => mergedSongsMap.set(s.id, s));
+            validCloudSongs.forEach(s => mergedSongsMap.set(s.id, s));
+            let mergedSongs = Array.from(mergedSongsMap.values());
+            let localOnlySongs = songs.filter(s => !cloudMap.has(s.id));
+            // ignorar música default (id 1) se ela for a única
+            if (localOnlySongs.length === 1 && localOnlySongs[0].id === '1') {
+                localOnlySongs = [];
+            }
+
+            // Merge Setlists
+            let validCloudSetlists = allCloudSetlists.filter(s => !s.deleted).map(s => s.data);
+            let cloudSetlistsMap = new Map(validCloudSetlists.map(s => [s.id, s]));
+            let mergedSetlistsMap = new Map();
+            setlists.forEach(s => mergedSetlistsMap.set(s.id, s));
+            validCloudSetlists.forEach(s => mergedSetlistsMap.set(s.id, s));
+            let mergedSetlists = Array.from(mergedSetlistsMap.values());
+            let localOnlySetlists = setlists.filter(s => !cloudSetlistsMap.has(s.id));
+
+            if (mergedSongs.length > 0) {
+                setSongs(mergedSongs);
+                await set('cifras-app-songs', mergedSongs).catch(console.error);
+            }
+            if (mergedSetlists.length > 0) {
+                setSetlists(mergedSetlists);
+                await set('cifras-app-setlists', mergedSetlists).catch(console.error);
+            }
+
+            // Upload Local Only
+            const totalUploads = localOnlySongs.length + localOnlySetlists.length;
+            if (totalUploads > 0) {
+                setSyncProgress({ isSyncing: true, progress: 50, statusText: `Enviando ${totalUploads} itens locais para a nuvem...` });
+                
+                const chunkSize = 500;
+                let uploadedCount = 0;
+                
+                // Upload Songs
+                for (let i = 0; i < localOnlySongs.length; i += chunkSize) {
+                    const chunk = localOnlySongs.slice(i, i + chunkSize);
+                    const sanitizedChunk = JSON.parse(JSON.stringify(chunk).replace(/\\u0000/g, ''));
+                    
+                    const payload = sanitizedChunk.map(s => ({
+                        id: s.id,
+                        user_id: session.user.id,
+                        data: s,
+                        deleted: false,
+                        updated_at: new Date().toISOString()
+                    }));
+                    const { error } = await supabase.from('cifras_songs').upsert(payload, { onConflict: 'id' });
+                    if (error) console.error(error);
+                    
+                    uploadedCount += chunk.length;
+                    const progress = 50 + Math.floor((uploadedCount / totalUploads) * 45); // up to 95%
+                    setSyncProgress({ isSyncing: true, progress, statusText: `Enviando ${uploadedCount} de ${totalUploads} itens...` });
+                }
+
+                // Upload Setlists
+                for (let i = 0; i < localOnlySetlists.length; i += chunkSize) {
+                    const chunk = localOnlySetlists.slice(i, i + chunkSize);
+                    const sanitizedChunk = JSON.parse(JSON.stringify(chunk).replace(/\\u0000/g, ''));
+                    
+                    const payload = sanitizedChunk.map(s => ({
+                        id: s.id,
+                        user_id: session.user.id,
+                        data: s,
+                        deleted: false,
+                        updated_at: new Date().toISOString()
+                    }));
+                    const { error } = await supabase.from('cifras_setlists').upsert(payload, { onConflict: 'id' });
+                    if (error) console.error(error);
+                    
+                    uploadedCount += chunk.length;
+                    const progress = 50 + Math.floor((uploadedCount / totalUploads) * 45); // up to 95%
+                    setSyncProgress({ isSyncing: true, progress, statusText: `Enviando ${uploadedCount} de ${totalUploads} itens...` });
+                }
+            }
+
+            setSyncProgress({ isSyncing: true, progress: 100, statusText: 'Sincronização concluída!' });
+            setIsCloudSynced(true);
+            
+            // Hide after 3 seconds
+            setTimeout(() => {
+                setSyncProgress({ isSyncing: false, progress: 0, statusText: '' });
+            }, 3000);
+
+        } catch (err) {
+            console.error("Manual sync error", err);
+            setSyncProgress({ isSyncing: true, progress: 100, statusText: `Erro: ${err.message || 'Falha na conexão'}` });
+            setTimeout(() => {
+                setSyncProgress({ isSyncing: false, progress: 0, statusText: '' });
+            }, 5000);
+        }
+    };
+
+    const syncRowToCloud = async (table, id, data, deleted = false) => {
+        if (!isCloudSynced || !session?.user || isOfflineMode) return;
+        try {
+            // Remove null bytes that break postgresql JSONB
+            let safeData = data || {};
+            if (safeData) {
+                safeData = JSON.parse(JSON.stringify(safeData).replace(/\\u0000/g, ''));
+            }
+
+            await supabase.from(table).upsert({
+                id: id,
+                user_id: session.user.id,
+                data: safeData,
+                deleted: deleted,
+                updated_at: new Date().toISOString()
+            }, { onConflict: 'id' });
+        } catch (err) {
+            console.error(`Erro ao sincronizar ${table}:`, err);
+        }
+    };
 
     useEffect(() => {
         async function loadData() {
@@ -86,27 +257,17 @@ export function SongProvider({ children }) {
         return val ? JSON.parse(val) : true;
     });
 
-    const saveSongsTimeout = useRef(null);
+    const localSaveTimeout = useRef(null);
     useEffect(() => {
         if (isLoaded) {
-            if (saveSongsTimeout.current) clearTimeout(saveSongsTimeout.current);
-            saveSongsTimeout.current = setTimeout(() => {
-                set('cifras-app-songs', songs).catch(err => console.error("IDB save error", err));
+            if (localSaveTimeout.current) clearTimeout(localSaveTimeout.current);
+            localSaveTimeout.current = setTimeout(async () => {
+                await set('cifras-app-songs', songs).catch(console.error);
+                await set('cifras-app-setlists', setlists).catch(console.error);
             }, 1000);
         }
-        return () => { if (saveSongsTimeout.current) clearTimeout(saveSongsTimeout.current); };
-    }, [songs, isLoaded]);
-
-    const saveSetlistsTimeout = useRef(null);
-    useEffect(() => {
-        if (isLoaded) {
-            if (saveSetlistsTimeout.current) clearTimeout(saveSetlistsTimeout.current);
-            saveSetlistsTimeout.current = setTimeout(() => {
-                set('cifras-app-setlists', setlists).catch(err => console.error("IDB save error", err));
-            }, 1000);
-        }
-        return () => { if (saveSetlistsTimeout.current) clearTimeout(saveSetlistsTimeout.current); };
-    }, [setlists, isLoaded]);
+        return () => { if (localSaveTimeout.current) clearTimeout(localSaveTimeout.current); };
+    }, [songs, setlists, isLoaded]);
 
     useEffect(() => {
         const root = window.document.documentElement;
@@ -192,26 +353,42 @@ export function SongProvider({ children }) {
             lastEdited: new Date().toISOString()
         };
         setSongs([newSong, ...songs]);
+        syncRowToCloud('cifras_songs', newSong.id, newSong, false);
         return newSong.id;
     };
 
     const updateSong = (id, songData) => {
-        setSongs(songs.map(song =>
-            song.id === id ? { ...song, ...songData, lastEdited: new Date().toISOString() } : song
-        ));
+        setSongs(songs.map(song => {
+            if (String(song.id) === String(id)) {
+                const updated = { ...song, ...songData, lastEdited: new Date().toISOString() };
+                syncRowToCloud('cifras_songs', song.id, updated, false);
+                return updated;
+            }
+            return song;
+        }));
     };
 
     const deleteSong = (id) => {
-        setSongs(songs.filter(song => song.id !== id));
-        // Also remove from all setlists to maintain integrity
-        setSetlists(setlists.map(list => ({
-            ...list,
-            songs: list.songs.filter(songId => songId !== id)
-        })));
+        setSongs(songs.filter(song => String(song.id) !== String(id)));
+        syncRowToCloud('cifras_songs', id, null, true);
+        
+        setSetlists(prevSetlists => {
+            return prevSetlists.map(list => {
+                if (list.songs.some(songId => String(songId) === String(id))) {
+                    const newList = {
+                        ...list,
+                        songs: list.songs.filter(songId => String(songId) !== String(id))
+                    };
+                    syncRowToCloud('cifras_setlists', list.id, newList, false);
+                    return newList;
+                }
+                return list;
+            });
+        });
     };
 
     const getSong = (id) => {
-        return songs.find(song => song.id === id);
+        return songs.find(song => String(song.id) === String(id));
     };
 
     const importSongs = (newSongs) => {
@@ -240,16 +417,20 @@ export function SongProvider({ children }) {
             songs: []
         };
         setSetlists([newSetlist, ...setlists]);
+        syncRowToCloud('cifras_setlists', newSetlist.id, newSetlist, false);
     };
 
     const deleteSetlist = (id) => {
         setSetlists(setlists.filter(s => s.id !== id));
+        syncRowToCloud('cifras_setlists', id, null, true);
     };
 
     const updateSetlist = (id, title) => {
         setSetlists(setlists.map(s => {
             if (s.id === id) {
-                return { ...s, title };
+                const updated = { ...s, title };
+                syncRowToCloud('cifras_setlists', id, updated, false);
+                return updated;
             }
             return s;
         }));
@@ -259,7 +440,9 @@ export function SongProvider({ children }) {
         setSetlists(setlists.map(s => {
             if (s.id === setlistId) {
                 if (s.songs.includes(songId)) return s; // Prevent duplicates
-                return { ...s, songs: [...s.songs, songId] };
+                const updated = { ...s, songs: [...s.songs, songId] };
+                syncRowToCloud('cifras_setlists', setlistId, updated, false);
+                return updated;
             }
             return s;
         }));
@@ -268,7 +451,9 @@ export function SongProvider({ children }) {
     const removeFromSetlist = (setlistId, songId) => {
         setSetlists(setlists.map(s => {
             if (s.id === setlistId) {
-                return { ...s, songs: s.songs.filter(id => id !== songId) };
+                const updated = { ...s, songs: s.songs.filter(id => id !== songId) };
+                syncRowToCloud('cifras_setlists', setlistId, updated, false);
+                return updated;
             }
             return s;
         }));
@@ -277,7 +462,9 @@ export function SongProvider({ children }) {
     const reorderSetlist = (setlistId, newOrder) => {
         setSetlists(setlists.map(s => {
             if (s.id === setlistId) {
-                return { ...s, songs: newOrder };
+                const updated = { ...s, songs: newOrder };
+                syncRowToCloud('cifras_setlists', setlistId, updated, false);
+                return updated;
             }
             return s;
         }));
@@ -330,6 +517,8 @@ export function SongProvider({ children }) {
             if (setlistsToAdd.length > 0) {
                 setSetlists(prev => [...setlistsToAdd, ...prev]);
             }
+            
+
 
             return { success: true, count: setlistsToAdd.length };
         } catch (e) {
@@ -340,6 +529,8 @@ export function SongProvider({ children }) {
 
     return (
         <SongContext.Provider value={{
+            syncProgress,
+            manualSync,
             songs,
             currentSong,
             setCurrentSong,

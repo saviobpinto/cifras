@@ -12,6 +12,7 @@
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
     "@stackframe/stack": "^2.8.70",
+    "@supabase/supabase-js": "^2.103.3",
     "@tombatossals/chords-db": "^0.5.1",
     "chord-symbol": "^4.0.0",
     "clsx": "^2.1.1",

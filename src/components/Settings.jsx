@@ -2,13 +2,15 @@ import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useSongs } from '../contexts/SongContext';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 // Static import removed to lazily load huge dataset
 // import { ipadSongs } from '../data/ipadSongs';
 
 function Settings() {
     const navigate = useNavigate();
-    const { theme, toggleTheme, importSongs, clearAllSongs, keepAwake, toggleKeepAwake, exportSetlists, importData, setlists } = useSongs();
+    const { theme, toggleTheme, importSongs, clearAllSongs, keepAwake, toggleKeepAwake, exportSetlists, importData, setlists, syncProgress, manualSync } = useSongs();
     const { t, i18n } = useTranslation();
     const isDark = theme === 'dark';
 
@@ -142,8 +144,45 @@ function Settings() {
 
                     {/* Database Settings Group */}
                     <section>
-                        <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-2">Dados</h3>
+                        <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-2">{t('settings.data')}</h3>
                         <div className="bg-surface-light dark:bg-surface-dark rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700/50 divide-y divide-slate-200 dark:divide-slate-700/50">
+                            
+                            {/* Sincronização Manual */}
+                            <div className="flex flex-col p-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/20">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                                            <span className="material-symbols-outlined text-xl">sync</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="font-medium text-base text-slate-900 dark:text-white">{t('settings.sync')}</span>
+                                            <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.syncDesc')}</span>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={manualSync} 
+                                        disabled={syncProgress?.isSyncing}
+                                        className="bg-primary hover:bg-primary-light disabled:opacity-50 text-white font-medium text-sm px-4 py-2 rounded-lg transition-colors"
+                                    >
+                                        {syncProgress?.isSyncing ? t('settings.syncing') : t('settings.syncBtn')}
+                                    </button>
+                                </div>
+                                {syncProgress?.isSyncing && (
+                                    <div className="mt-4 flex flex-col gap-1 w-full animate-fade-in">
+                                        <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+                                            <span>{syncProgress.statusText}</span>
+                                            <span>{syncProgress.progress}%</span>
+                                        </div>
+                                        <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                                            <div 
+                                                className="bg-primary h-2 rounded-full transition-all duration-300"
+                                                style={{ width: `${syncProgress.progress}%` }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
                             {/* Export Backup */}
                             <div onClick={() => setShowExportModal(true)} className="flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors cursor-pointer group">
                                 <div className="flex items-center gap-3">
@@ -151,8 +190,8 @@ function Settings() {
                                         <span className="material-symbols-outlined text-xl">upload</span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-medium text-base text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors">Exportar Backup</span>
-                                        <span className="text-xs text-slate-500 dark:text-slate-400">Salvar setlists e músicas em um arquivo</span>
+                                        <span className="font-medium text-base text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors">{t('settings.exportBackup')}</span>
+                                        <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.exportBackupDesc')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -163,8 +202,8 @@ function Settings() {
                                         <span className="material-symbols-outlined text-xl">file_download</span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-medium text-base text-slate-900 dark:text-white group-hover:text-cyan-500 transition-colors">Importar Backup</span>
-                                        <span className="text-xs text-slate-500 dark:text-slate-400">Restaurar de um arquivo salvo anteriormente</span>
+                                        <span className="font-medium text-base text-slate-900 dark:text-white group-hover:text-cyan-500 transition-colors">{t('settings.importBackup')}</span>
+                                        <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.importBackupDesc')}</span>
                                     </div>
                                 </div>
                                 <input
@@ -183,8 +222,8 @@ function Settings() {
                                         <span className="material-symbols-outlined text-xl">library_music</span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-medium text-base text-slate-900 dark:text-white group-hover:text-purple-500 transition-colors">Importar Catálogo</span>
-                                        <span className="text-xs text-slate-500 dark:text-slate-400">Importar biblioteca de cifras</span>
+                                        <span className="font-medium text-base text-slate-900 dark:text-white group-hover:text-purple-500 transition-colors">{t('settings.importCatalog')}</span>
+                                        <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.importCatalogDesc')}</span>
                                     </div>
                                 </div>
                             </div>
@@ -195,8 +234,33 @@ function Settings() {
                                         <span className="material-symbols-outlined text-xl">delete_sweep</span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-medium text-base text-red-600 dark:text-red-400 group-hover:text-red-500 transition-colors">Apagar Toda a Biblioteca</span>
-                                        <span className="text-xs text-red-500/70 dark:text-red-400/70">Zera todas as músicas para re-importação</span>
+                                        <span className="font-medium text-base text-red-600 dark:text-red-400 group-hover:text-red-500 transition-colors">{t('settings.clearLibrary')}</span>
+                                        <span className="text-xs text-red-500/70 dark:text-red-400/70">{t('settings.clearLibraryDesc')}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Account Settings Group */}
+                    <section>
+                        <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-2">{t('settings.account')}</h3>
+                        <div className="bg-surface-light dark:bg-surface-dark rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700/50 divide-y divide-slate-200 dark:divide-slate-700/50">
+                            {/* Logout */}
+                            <div 
+                                onClick={async () => {
+                                    await supabase.auth.signOut();
+                                    navigate('/login');
+                                }} 
+                                className="flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors cursor-pointer group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-red-500">
+                                        <span className="material-symbols-outlined text-xl">logout</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="font-medium text-base text-red-600 dark:text-red-400 group-hover:text-red-500 transition-colors">{t('settings.logout')}</span>
+                                        <span className="text-xs text-red-500/70 dark:text-red-400/70">{t('settings.logoutDesc')}</span>
                                     </div>
                                 </div>
                             </div>

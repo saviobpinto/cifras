@@ -3,6 +3,41 @@ import { useTranslation } from 'react-i18next';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useSongs } from '../contexts/SongContext';
 
+const calculateSetlistDuration = (setlist, allSongs) => {
+    let totalSeconds = 0;
+    setlist.songs.forEach(songId => {
+        const song = allSongs.find(s => s.id === songId);
+        if (song && song.content) {
+            const numLines = song.content.split('\n').length;
+            const fontSize = song.fontSize || 14;
+            const scrollSpeed = song.scrollSpeed || 1;
+            
+            let pauseSeconds = 0;
+            const pauseMatches = song.content.match(/P\{(\d+)\}/g);
+            if (pauseMatches) {
+                pauseMatches.forEach(m => {
+                    const sec = parseInt(m.match(/\d+/)[0], 10);
+                    if (!isNaN(sec)) pauseSeconds += sec;
+                });
+            }
+
+            const estimatedHeight = (numLines * fontSize * 1.5) + 400; 
+            const speedPxPerSec = 20 * scrollSpeed;
+            
+            totalSeconds += (estimatedHeight / speedPxPerSec) + pauseSeconds;
+        }
+    });
+    
+    if (totalSeconds === 0) return '0m';
+    
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.ceil((totalSeconds % 3600) / 60);
+    
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+};
 
 function Dashboard() {
     const { t } = useTranslation();
@@ -38,7 +73,7 @@ function Dashboard() {
                             </div>
                             <div>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-none mb-1">{t('dashboard.welcome')},</p>
-                                <h2 className="text-lg font-bold leading-none text-slate-900 dark:text-white">Músico</h2>
+                                <h2 className="text-lg font-bold leading-none text-slate-900 dark:text-white">{t('dashboard.musician')}</h2>
                             </div>
                         </div>
                         <div className="flex items-center gap-1">
@@ -104,6 +139,9 @@ function Dashboard() {
                                         <div className="flex items-center gap-3 mt-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                             <span className="flex items-center gap-1">
                                                 <span className="material-symbols-outlined text-[12px]">music_note</span> {setlist.songs.length} {t('dashboard.songs')}
+                                            </span>
+                                            <span className="flex items-center gap-1 ml-2">
+                                                <span className="material-symbols-outlined text-[12px]">schedule</span> {calculateSetlistDuration(setlist, songs)}
                                             </span>
                                         </div>
                                     </div>

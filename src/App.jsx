@@ -7,25 +7,32 @@ import SetlistDetail from './components/SetlistDetail';
 import Library from './components/Library';
 import Settings from './components/Settings';
 import { SongProvider } from './contexts/SongContext';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './components/Login';
 
 function App() {
   return (
-    <SongProvider>
-      <Router>
-        <Routes>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/library" element={<Library />} />
-          <Route path="/song/new" element={<SongEditor />} />
-          <Route path="/song/edit/:id" element={<SongEditor />} />
-          <Route path="/song/viewer" element={<SongViewer />} />
-          <Route path="/setlist/:id" element={<SetlistDetail />} />
-          <Route path="/settings" element={<Settings />} />
+    <AuthProvider>
+      <SongProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
+            <Route path="/song/new" element={<ProtectedRoute><SongEditor /></ProtectedRoute>} />
+            <Route path="/song/edit/:id" element={<ProtectedRoute><SongEditor /></ProtectedRoute>} />
+            <Route path="/song/viewer" element={<ProtectedRoute><SongViewer /></ProtectedRoute>} />
+            <Route path="/setlist/:id" element={<ProtectedRoute><SetlistDetail /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
 
-          {/* Redirect root to dashboard */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </Router>
-    </SongProvider>
+            {/* Redirect root to dashboard */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </Router>
+      </SongProvider>
+    </AuthProvider>
   );
 }
 
