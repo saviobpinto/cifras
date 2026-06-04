@@ -94,7 +94,7 @@ function Settings() {
             
             if (error) throw error;
             if (data && data.checkoutUrl) {
-                window.open(data.checkoutUrl, "_blank");
+                window.location.href = data.checkoutUrl;
             } else {
                 throw new Error("Resposta inválida do servidor");
             }
