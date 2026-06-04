@@ -167,7 +167,7 @@ function Settings() {
                                         Libere o potencial completo do aplicativo de cifras e melhore suas apresentações:
                                     </p>
                                     <ul className="text-xs text-slate-300/80 space-y-1.5 list-disc list-inside">
-                                        <li>Músicas ilimitadas na biblioteca (Grátis: limite de 30)</li>
+                                        <li>Músicas ilimitadas na biblioteca</li>
                                         <li>Backup e sincronização em nuvem automáticos</li>
                                         <li>Acesso offline total sem internet</li>
                                         <li>Importação de catálogo com mais de 30mil cifras</li>
@@ -180,7 +180,7 @@ function Settings() {
                                             disabled={importMessage === "Gerando pagamento..."}
                                             className="w-full bg-primary hover:bg-primary-light disabled:opacity-75 text-white py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-1.5"
                                         >
-                                            Assinar Premium (pagamento único R$ 29,90)
+                                            Assinar por R$ 29,90 (pagamento único)
                                         </button>
 
                                         {/* Botão de teste rápido */}
