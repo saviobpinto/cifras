@@ -44,7 +44,7 @@ function Settings() {
     const handleImportIpad = async () => {
         setImportMessage("Baixando catálogo...");
         try {
-            const catalogUrl = 'https://www.dropbox.com/scl/fi/dof1r50506a7fbqckkt7e/ipadSongs.json?rlkey=b0rgqpdplf9la82az7ddzwtzp&st=i2zcvv6v&dl=1';
+            const catalogUrl = 'https://dl.dropboxusercontent.com/scl/fi/dof1r50506a7fbqckkt7e/ipadSongs.json?rlkey=b0rgqpdplf9la82az7ddzwtzp';
             const response = await fetch(catalogUrl);
             if (!response.ok) throw new Error('Falha ao baixar catálogo');
             const data = await response.json();
