@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { useTranslation } from 'react-i18next';
 import { useSongs } from '../contexts/SongContext';
 import { transposeNote } from '../lib/music';
 
 function SetlistDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const { setlists, songs, reorderSetlist, deleteSetlist, removeFromSetlist, setCurrentSong, updateSetlist } = useSongs();
 
     useEffect(() => {
@@ -119,6 +121,25 @@ function SetlistDetail() {
             </header>
 
             <main className="flex-1 p-4 pb-24 max-w-2xl mx-auto w-full">
+                {/* Continuous Scroll Toggle */}
+                <div className="bg-white dark:bg-surface-dark rounded-xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm mb-4">
+                    <div className="flex items-center justify-between cursor-pointer" onClick={() => updateSetlist(setlist.id, { continuousScroll: !setlist.continuousScroll })}>
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary">
+                                <span className="material-symbols-outlined text-xl">playlist_play</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="font-semibold text-sm">{t('dashboard.continuousScroll')}</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400">{t('dashboard.continuousScrollDesc')}</span>
+                            </div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer pointer-events-none">
+                            <input className="sr-only peer" type="checkbox" checked={!!setlist.continuousScroll} readOnly />
+                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/20 dark:peer-focus:ring-primary/30 rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+                        </label>
+                    </div>
+                </div>
+
                 <DragDropContext onDragEnd={handleDragEnd}>
                     <Droppable droppableId="setlist-songs">
                         {(provided) => (

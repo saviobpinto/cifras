@@ -425,10 +425,13 @@ export function SongProvider({ children }) {
         syncRowToCloud('cifras_setlists', id, null, true);
     };
 
-    const updateSetlist = (id, title) => {
+    const updateSetlist = (id, updates) => {
         setSetlists(setlists.map(s => {
             if (s.id === id) {
-                const updated = { ...s, title };
+                const updated = {
+                    ...s,
+                    ...(typeof updates === 'string' ? { title: updates } : updates)
+                };
                 syncRowToCloud('cifras_setlists', id, updated, false);
                 return updated;
             }

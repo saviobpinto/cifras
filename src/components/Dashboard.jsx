@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useSongs } from '../contexts/SongContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const calculateSetlistDuration = (setlist, allSongs) => {
     let totalSeconds = 0;
@@ -42,7 +43,14 @@ const calculateSetlistDuration = (setlist, allSongs) => {
 function Dashboard() {
     const { t } = useTranslation();
     const { songs, setlists, setCurrentSong, addSetlist, deleteSetlist } = useSongs();
+    const { user, isOfflineMode } = useAuth();
     const navigate = useNavigate();
+
+    const displayName = isOfflineMode 
+        ? t('dashboard.musician') 
+        : (user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || t('dashboard.musician'));
+        
+    const avatarUrl = !isOfflineMode && (user?.user_metadata?.avatar_url || user?.user_metadata?.picture);
     const [isCreatingSetlist, setIsCreatingSetlist] = useState(false);
     const [newSetlistTitle, setNewSetlistTitle] = useState('');
 
@@ -68,12 +76,16 @@ function Dashboard() {
                 <header className="sticky top-0 z-20 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-3">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center rounded-full size-10 border-2 border-primary bg-primary/10 text-primary font-bold text-sm">
-                                <span className="material-symbols-outlined text-[20px]">person</span>
-                            </div>
+                            {avatarUrl ? (
+                                <img src={avatarUrl} alt={displayName} className="rounded-full size-10 border-2 border-primary object-cover" />
+                            ) : (
+                                <div className="flex items-center justify-center rounded-full size-10 border-2 border-primary bg-primary/10 text-primary font-bold text-sm">
+                                    <span className="material-symbols-outlined text-[20px]">person</span>
+                                </div>
+                            )}
                             <div>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-none mb-1">{t('dashboard.welcome')},</p>
-                                <h2 className="text-lg font-bold leading-none text-slate-900 dark:text-white">{t('dashboard.musician')}</h2>
+                                <h2 className="text-lg font-bold leading-none text-slate-900 dark:text-white">{displayName}</h2>
                             </div>
                         </div>
                         <div className="flex items-center gap-1">

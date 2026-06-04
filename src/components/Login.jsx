@@ -69,7 +69,7 @@ function Login() {
       <div className="max-w-md w-full space-y-8 bg-surface-light dark:bg-surface-dark p-8 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 dark:text-white">
-            {isSignUp ? 'Criar nova conta' : 'Entrar no Cifras'}
+            {isSignUp ? 'Criar nova conta' : 'Entrar no My Setlist'}
           </h2>
         </div>
         

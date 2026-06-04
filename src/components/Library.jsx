@@ -2,7 +2,6 @@ import React, { useState, useEffect, useDeferredValue, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSongs } from '../contexts/SongContext';
-import { transposeNote } from '../lib/music';
 
 function Library() {
     const navigate = useNavigate();
@@ -110,11 +109,6 @@ function Library() {
                                 state={{ from: '/library' }}
                                 className="group flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-800 hover:border-primary/50 dark:hover:border-primary/50 transition-all active:scale-[0.99]"
                             >
-                                {/* Key Badge */}
-                                <div className="flex flex-col items-center justify-center size-10 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-200 font-bold text-sm shrink-0 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                                    {song.key ? transposeNote(song.key, song.transposition || 0) : '?'}
-                                </div>
-
                                 <div className="flex-1 min-w-0">
                                     <h4 className="font-bold truncate text-slate-900 dark:text-white">{song.title}</h4>
                                     <p className="text-xs text-slate-500">{song.artist}</p>

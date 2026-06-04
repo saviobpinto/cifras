@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { cn } from '../lib/utils';
@@ -15,17 +15,15 @@ function SongViewer() {
     const { getSong, updateSong, currentSong, setlists, songs, addToSetlist } = useSongs();
     const { t } = useTranslation();
 
-    const [song, setSong] = useState(null);
+    const [viewerSongs, setViewerSongs] = useState([]);
+    const [activeSongIndex, setActiveSongIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [scrollSpeed, setScrollSpeed] = useState(1);
-    const [fontSize, setFontSize] = useState(14);
     const [pauseTimeRemaining, setPauseTimeRemaining] = useState(0);
-    const scrollContainerRef = useRef(null);
-    const lineRefs = useRef([]);
-    const triggeredPauses = useRef(new Set());
 
-    const [transpose, setTranspose] = useState(0);
-    const [parsedLines, setParsedLines] = useState([]);
+    const scrollContainerRef = useRef(null);
+    const lineRefs = useRef({});
+    const triggeredPauses = useRef(new Set());
+    const scrollTimeRef = useRef(0);
 
     // Context Navigation State
     const [prevSongId, setPrevSongId] = useState(null);
@@ -33,6 +31,27 @@ function SongViewer() {
 
     // Modal State
     const [showSetlistModal, setShowSetlistModal] = useState(false);
+
+    const navigateToSong = useCallback((targetId, autoPlay = false) => {
+        if (!targetId) return;
+        // Reset scroll
+        if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+        setIsPlaying(false);
+        const url = `/song/viewer?id=${targetId}${setlistId ? `&setlistId=${setlistId}` : ''}${autoPlay ? '&autoPlay=true' : ''}`;
+        navigate(url, { state: location.state });
+    }, [navigate, setlistId, location]);
+
+    const scrollToSong = useCallback((index) => {
+        if (index < 0 || index >= viewerSongs.length) return;
+        const el = document.getElementById(`song-wrapper-${index}`);
+        if (el && scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+                top: el.offsetTop - 20,
+                behavior: 'smooth'
+            });
+            setActiveSongIndex(index);
+        }
+    }, [viewerSongs]);
 
     // Initial Load & Navigation Logic
     useEffect(() => {
@@ -44,17 +63,29 @@ function SongViewer() {
         }
 
         if (loadedSong) {
-            setSong(loadedSong);
-            setParsedLines(parseChordPro(loadedSong.content));
+            let list = [];
+            const setlist = setlists.find(s => s.id === setlistId);
+            if (setlist && setlist.continuousScroll) {
+                const currentIndex = setlist.songs.indexOf(loadedSong.id);
+                if (currentIndex !== -1) {
+                    const subsequentIds = setlist.songs.slice(currentIndex);
+                    list = subsequentIds.map(id => getSong(id)).filter(Boolean);
+                } else {
+                    list = [loadedSong];
+                }
+            } else {
+                list = [loadedSong];
+            }
 
-            // Settings
-            if (loadedSong.scrollSpeed) setScrollSpeed(loadedSong.scrollSpeed);
-            if (loadedSong.transposition) setTranspose(loadedSong.transposition);
-            else setTranspose(0);
-            if (loadedSong.fontSize) setFontSize(loadedSong.fontSize);
-            else setFontSize(14);
+            setViewerSongs(list.map(s => ({
+                ...s,
+                scrollSpeed: s.scrollSpeed || 1,
+                transposition: s.transposition || 0,
+                fontSize: s.fontSize || 14,
+                parsedLines: parseChordPro(s.content)
+            })));
 
-            // Determine Next/Prev
+            // Determine Next/Prev IDs for the context navigation (based on the FULL setlist or library)
             let contextSongs = [];
             if (setlistId) {
                 const setlist = setlists.find(s => s.id === setlistId);
@@ -62,8 +93,6 @@ function SongViewer() {
                     contextSongs = setlist.songs.map(id => songs.find(s => s.id === id)).filter(Boolean);
                 }
             } else {
-                // If no setlist, use all songs (maybe filtered by recent? for now just all)
-                // Defaulting to all songs might be confusing if user came from 'recent', but better than nothing
                 contextSongs = songs;
             }
 
@@ -76,38 +105,62 @@ function SongViewer() {
                     setNextSongId(next ? next.id : null);
                 }
             }
-        }
-    }, [songId, setlistId, currentSong, getSong, setlists, songs]);
 
-    // Persist Speed Logic
-    useEffect(() => {
-        if (song && scrollSpeed !== song.scrollSpeed) {
-            const timeout = setTimeout(() => {
-                updateSong(song.id, { scrollSpeed });
-            }, 1000);
-            return () => clearTimeout(timeout);
+            // AutoPlay check
+            const autoPlayParam = searchParams.get('autoPlay');
+            if (autoPlayParam === 'true') {
+                setIsPlaying(true);
+            }
         }
-    }, [scrollSpeed, song, updateSong]);
+    }, [songId, setlistId, currentSong, getSong, setlists, songs, searchParams]);
 
-    // Persist Transposition Logic
+    // Reset scroll when songId changes
     useEffect(() => {
-        if (song && transpose !== (song.transposition || 0)) {
-            const timeout = setTimeout(() => {
-                updateSong(song.id, { transposition: transpose });
-            }, 1000);
-            return () => clearTimeout(timeout);
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop = 0;
         }
-    }, [transpose, song, updateSong]);
+        setActiveSongIndex(0);
+    }, [songId]);
 
-    // Persist Font Size Logic
+    // Reset scroll timer when songId, activeSongIndex or isPlaying changes
     useEffect(() => {
-        if (song && fontSize !== (song.fontSize || 14)) {
-            const timeout = setTimeout(() => {
-                updateSong(song.id, { fontSize });
-            }, 1000);
-            return () => clearTimeout(timeout);
+        scrollTimeRef.current = 0;
+    }, [songId, activeSongIndex, isPlaying]);
+
+    // Update song setting helper
+    const updateSongSetting = useCallback((id, key, value) => {
+        setViewerSongs(prev => prev.map(s => {
+            if (s.id === id) {
+                const updated = { ...s, [key]: value };
+                updateSong(id, { [key]: value });
+                return updated;
+            }
+            return s;
+        }));
+    }, [updateSong]);
+
+    const activeSong = viewerSongs[activeSongIndex];
+
+    // Scroll listener to update activeSongIndex as viewport changes
+    const handleScroll = useCallback(() => {
+        if (!scrollContainerRef.current || viewerSongs.length <= 1) return;
+        const container = scrollContainerRef.current;
+        const scrollTop = container.scrollTop;
+
+        let currentActiveIndex = 0;
+        for (let i = 0; i < viewerSongs.length; i++) {
+            const el = document.getElementById(`song-wrapper-${i}`);
+            if (el) {
+                if (el.offsetTop <= scrollTop + container.clientHeight / 2) {
+                    currentActiveIndex = i;
+                }
+            }
         }
-    }, [fontSize, song, updateSong]);
+
+        if (currentActiveIndex !== activeSongIndex) {
+            setActiveSongIndex(currentActiveIndex);
+        }
+    }, [viewerSongs, activeSongIndex]);
 
     // Auto-scroll logic
     const scrollAccumulator = useRef(0);
@@ -115,6 +168,7 @@ function SongViewer() {
     useEffect(() => {
         let intervalId;
         if (isPlaying && scrollContainerRef.current) {
+            const currentSpeed = activeSong ? activeSong.scrollSpeed : 1;
             intervalId = setInterval(() => {
                 // If we are in a pause, just decrement the timer
                 if (pauseTimeRemaining > 0) {
@@ -126,17 +180,17 @@ function SongViewer() {
                 const scrollTop = container.scrollTop;
 
                 // Check for pause points
-                if (lineRefs.current) {
+                if (activeSong && lineRefs.current) {
+                    const parsedLines = activeSong.parsedLines;
                     for (let i = 0; i < parsedLines.length; i++) {
                         const line = parsedLines[i];
-                        if (line.pause > 0 && !triggeredPauses.current.has(i)) {
-                            const element = lineRefs.current[i];
+                        if (line.pause > 0 && !triggeredPauses.current.has(`${activeSongIndex}-${i}`)) {
+                            const element = lineRefs.current[`${activeSongIndex}-${i}`];
                             if (element) {
                                 // Calculate position relative to container top
-                                // We use a small threshold because precision varies
                                 if (element.offsetTop <= scrollTop + 5) {
                                     setPauseTimeRemaining(line.pause * 1000);
-                                    triggeredPauses.current.add(i);
+                                    triggeredPauses.current.add(`${activeSongIndex}-${i}`);
                                     return; // Don't scroll this frame
                                 }
                             }
@@ -144,11 +198,22 @@ function SongViewer() {
                     }
                 }
 
-                scrollAccumulator.current += 1 * scrollSpeed;
+                scrollAccumulator.current += 1 * currentSpeed;
                 if (scrollAccumulator.current >= 1) {
                     const pixelsToScroll = Math.floor(scrollAccumulator.current);
                     container.scrollTop += pixelsToScroll;
                     scrollAccumulator.current -= pixelsToScroll;
+                }
+
+                // If continuousScroll is active, auto-scrolling moves past boundaries naturally.
+                // But we still need to check if we hit the very end of the entire setlist wrapper.
+                scrollTimeRef.current += 50;
+                const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 5;
+                const setlist = setlists.find(s => s.id === setlistId);
+                // Transition to the next page only if it's the last song in viewerSongs and we have a nextSongId
+                if (isAtBottom && setlist?.continuousScroll && nextSongId && activeSongIndex === viewerSongs.length - 1 && scrollTimeRef.current > 3000) {
+                    clearInterval(intervalId);
+                    navigateToSong(nextSongId, true);
                 }
             }, 50);
         } else {
@@ -159,22 +224,33 @@ function SongViewer() {
             }
         }
         return () => clearInterval(intervalId);
-    }, [isPlaying, scrollSpeed, pauseTimeRemaining, parsedLines]);
+    }, [isPlaying, activeSong, activeSongIndex, pauseTimeRemaining, setlistId, setlists, nextSongId, navigateToSong, viewerSongs.length]);
 
     const togglePlay = () => setIsPlaying(!isPlaying);
 
     const handleTranspose = (amount) => {
-        setTranspose(prev => prev + amount);
+        if (!activeSong) return;
+        const newTransposition = (activeSong.transposition || 0) + amount;
+        updateSongSetting(activeSong.id, 'transposition', newTransposition);
     };
 
-    const navigateToSong = (targetId) => {
-        if (!targetId) return;
-        // Reset scroll
-        if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
-        setIsPlaying(false);
-        const url = `/song/viewer?id=${targetId}${setlistId ? `&setlistId=${setlistId}` : ''}`;
-        navigate(url);
-    };
+    const handleNextSong = useCallback(() => {
+        const nextIndex = activeSongIndex + 1;
+        if (nextIndex < viewerSongs.length) {
+            scrollToSong(nextIndex);
+        } else if (nextSongId) {
+            navigateToSong(nextSongId);
+        }
+    }, [activeSongIndex, viewerSongs.length, nextSongId, scrollToSong, navigateToSong]);
+
+    const handlePrevSong = useCallback(() => {
+        const prevIndex = activeSongIndex - 1;
+        if (prevIndex >= 0) {
+            scrollToSong(prevIndex);
+        } else if (prevSongId) {
+            navigateToSong(prevSongId);
+        }
+    }, [activeSongIndex, prevSongId, scrollToSong, navigateToSong]);
 
     // --- SWIPE LOGIC ---
     const touchStart = useRef(null);
@@ -197,17 +273,17 @@ function SongViewer() {
         const isLeftSwipe = distance > minSwipeDistance;
         const isRightSwipe = distance < -minSwipeDistance;
 
-        if (isLeftSwipe && nextSongId) {
-            navigateToSong(nextSongId);
+        if (isLeftSwipe) {
+            handleNextSong();
         }
-        if (isRightSwipe && prevSongId) {
-            navigateToSong(prevSongId);
+        if (isRightSwipe) {
+            handlePrevSong();
         }
     }
 
-    const currentKey = song?.key ? transposeNote(song.key, transpose) : '?';
+    const currentKey = activeSong?.key ? transposeNote(activeSong.key, activeSong.transposition || 0) : '?';
 
-    if (!song) {
+    if (viewerSongs.length === 0) {
         return <div className="p-10 text-center text-slate-500">Loading song...</div>;
     }
 
@@ -223,29 +299,29 @@ function SongViewer() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                     <div className="bg-white dark:bg-surface-dark rounded-xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200">
                         <div className="p-4 border-b border-slate-100 dark:border-slate-800">
-                            <h3 className="font-bold text-lg">Add to Setlist</h3>
+                            <h3 className="font-bold text-lg">{t('dashboard.addToSetlist')}</h3>
                         </div>
                         <div className="p-2 max-h-60 overflow-y-auto">
                             {setlists.length === 0 ? (
-                                <p className="p-4 text-center text-slate-500 text-sm">No setlists created yet.</p>
+                                <p className="p-4 text-center text-slate-500 text-sm">{t('dashboard.noSetlistsYet')}</p>
                             ) : (
                                 setlists.map(list => (
                                     <button
                                         key={list.id}
                                         onClick={() => {
-                                            addToSetlist(list.id, song.id);
+                                            addToSetlist(list.id, activeSong.id);
                                             setShowSetlistModal(false);
                                         }}
                                         className="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-between group"
                                     >
                                         <span className="font-medium">{list.title}</span>
-                                        {list.songs.includes(song.id) && <span className="text-primary material-symbols-outlined text-sm">check</span>}
+                                        {list.songs.includes(activeSong.id) && <span className="text-primary material-symbols-outlined text-sm">check</span>}
                                     </button>
                                 ))
                             )}
                         </div>
                         <div className="p-3 bg-slate-50 dark:bg-black/20 text-right">
-                            <button onClick={() => setShowSetlistModal(false)} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">Cancel</button>
+                            <button onClick={() => setShowSetlistModal(false)} className="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">{t('dashboard.cancel')}</button>
                         </div>
                     </div>
                 </div>
@@ -257,19 +333,19 @@ function SongViewer() {
                     <span className="material-symbols-outlined">arrow_back</span>
                 </button>
                 <div className="flex-1 flex flex-col items-center justify-center mx-2 overflow-hidden">
-                    <h1 className="text-slate-900 dark:text-white text-lg font-bold truncate leading-tight">{song.title}</h1>
+                    <h1 className="text-slate-900 dark:text-white text-lg font-bold truncate leading-tight">{activeSong.title}</h1>
                     <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                        <span className="font-medium">{song.artist}</span>
-                        {song.key && (
+                        <span className="font-medium">{activeSong.artist}</span>
+                        {activeSong.key && (
                             <>
                                 <span className="size-0.5 rounded-full bg-slate-500"></span>
-                                <span>Orig: {song.key}</span>
+                                <span>Orig: {activeSong.key}</span>
                             </>
                         )}
                     </div>
                 </div>
                 <div className="flex items-center gap-1">
-                    <Link to={`/song/edit/${song.id}${setlistId ? `?setlistId=${setlistId}` : ''}`} className="flex items-center justify-center size-10 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
+                    <Link to={`/song/edit/${activeSong.id}${setlistId ? `?setlistId=${setlistId}` : ''}`} className="flex items-center justify-center size-10 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
                         <span className="material-symbols-outlined text-[20px]">edit</span>
                     </Link>
                     <button onClick={() => setShowSetlistModal(true)} className="flex items-center justify-center size-10 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
@@ -286,7 +362,7 @@ function SongViewer() {
                 {/* Navigation Overlay Buttons (Desktop/Tablet preferred, but works on mobile too) */}
                 {prevSongId && (
                     <button
-                        onClick={() => navigateToSong(prevSongId)}
+                        onClick={handlePrevSong}
                         className="absolute left-2 top-1/2 -translate-y-1/2 z-20 size-12 rounded-full bg-black/10 dark:bg-white/5 backdrop-blur hover:bg-primary/20 text-slate-400 hover:text-primary flex items-center justify-center transition-all hidden md:flex"
                     >
                         <span className="material-symbols-outlined text-3xl">chevron_left</span>
@@ -294,7 +370,7 @@ function SongViewer() {
                 )}
                 {nextSongId && (
                     <button
-                        onClick={() => navigateToSong(nextSongId)}
+                        onClick={handleNextSong}
                         className="absolute right-2 top-1/2 -translate-y-1/2 z-20 size-12 rounded-full bg-black/10 dark:bg-white/5 backdrop-blur hover:bg-primary/20 text-slate-400 hover:text-primary flex items-center justify-center transition-all hidden md:flex"
                     >
                         <span className="material-symbols-outlined text-3xl">chevron_right</span>
@@ -303,92 +379,118 @@ function SongViewer() {
 
                 <div
                     ref={scrollContainerRef}
+                    onScroll={handleScroll}
                     onClick={() => { if (isPlaying) setIsPlaying(false); }}
                     className="h-full overflow-y-auto no-scrollbar scroll-mask-bottom px-6 py-8 pb-32 font-mono"
-                    style={{ fontSize: `${fontSize}px` }}
                 >
-                    {/* Add a top padding so the song starts lower on the screen, giving time for intro */}
-                    <div className="h-[30vh] md:h-[40vh] w-full shrink-0"></div>
+                    {viewerSongs.map((vs, songIdx) => {
+                        const hasLyricsText = (line) => line.segments?.some(segment => segment.lyrics && segment.lyrics.trim() !== '');
 
-                    {/* Render Parsed song */}
-                    <div className="max-w-xl mx-auto">
-                        {parsedLines.map((line, i) => {
-                            if (line.type === 'section') {
-                                return (
-                                    <p
-                                        key={i}
-                                        ref={el => lineRefs.current[i] = el}
-                                        className="mt-8 mb-4 text-primary/80 font-bold text-xs uppercase tracking-widest font-sans bg-slate-100 dark:bg-white/5 inline-block px-2 py-1 rounded"
-                                    >
-                                        {line.label} {line.pause > 0 && <span className="ml-2 text-[10px] opacity-60">({line.pause}s pause)</span>}
-                                    </p>
-                                );
-                            }
+                        return (
+                            <div
+                                key={vs.id}
+                                id={`song-wrapper-${songIdx}`}
+                                style={{ fontSize: `${vs.fontSize || 14}px` }}
+                                className={cn("last:mb-0", viewerSongs.length > 1 ? "mb-10" : "mb-20")}
+                            >
+                                {/* Top padding / Spacer for each song */}
+                                {songIdx === 0 ? (
+                                    <div className="h-[30vh] md:h-[40vh] w-full shrink-0 flex flex-col justify-end pb-8 border-b border-dashed border-slate-200 dark:border-slate-800 mb-8">
+                                        <div className="max-w-xl mx-auto w-full px-4">
+                                            <span className="text-xs font-bold uppercase tracking-wider text-primary">{t('dashboard.songOf', { index: songIdx + 1, total: viewerSongs.length })}</span>
+                                            <h2 className="text-2xl font-black text-slate-900 dark:text-white mt-1">{vs.title}</h2>
+                                            <p className="text-sm text-slate-500 font-medium">{vs.artist}</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="pt-8 pb-4 border-b border-dashed border-slate-200 dark:border-slate-800 mb-6">
+                                        <div className="max-w-xl mx-auto w-full px-4">
+                                            <span className="text-xs font-bold uppercase tracking-wider text-primary">{t('dashboard.songOf', { index: songIdx + 1, total: viewerSongs.length })}</span>
+                                            <h2 className="text-xl font-black text-slate-900 dark:text-white mt-1">{vs.title}</h2>
+                                            <p className="text-xs text-slate-500 font-medium">{vs.artist}</p>
+                                        </div>
+                                    </div>
+                                )}
 
-                            if (line.type === 'lyrics') {
-                                return (
-                                    <p
-                                        key={i}
-                                        ref={el => lineRefs.current[i] = el}
-                                        className="mb-2 whitespace-pre-wrap text-slate-900 dark:text-slate-100"
-                                    >
-                                        {line.content} {line.pause > 0 && <span className="ml-2 text-[10px] text-primary/60">(pause {line.pause}s)</span>}
-                                    </p>
-                                );
-                            }
-
-                            // Render Line with Chords
-                            const hasLyricsText = line.segments.some(segment => segment.lyrics && segment.lyrics.trim() !== '');
-
-                            return (
-                                <div
-                                    key={i}
-                                    ref={el => lineRefs.current[i] = el}
-                                    className={`whitespace-pre-wrap break-words ${hasLyricsText ? 'mt-2 mb-4 leading-[2.5]' : 'mt-4 mb-2 leading-normal'}`}
-                                >
-                                    {line.pause > 0 && <div className="text-[10px] text-primary/60 mb-1 opacity-60">(pause {line.pause}s)</div>}
-                                    {line.segments.map((segment, j) => {
-                                        const transposedChord = segment.chord
-                                            ? transposeNote(segment.chord, transpose)
-                                            : null;
-
-                                        const segmentLyrics = segment.lyrics || '';
-
-                                        if (!hasLyricsText) {
+                                <div className="max-w-xl mx-auto">
+                                    {vs.parsedLines.map((line, i) => {
+                                        if (line.type === 'section') {
                                             return (
-                                                <React.Fragment key={j}>
-                                                    {transposedChord && (
-                                                        <ChordTooltip chordName={transposedChord}>
-                                                            <span className="text-primary font-bold">{transposedChord}</span>
-                                                        </ChordTooltip>
-                                                    )}
-                                                    <span className="text-slate-900 dark:text-slate-100">{segmentLyrics}</span>
-                                                </React.Fragment>
+                                                <p
+                                                    key={i}
+                                                    ref={el => lineRefs.current[`${songIdx}-${i}`] = el}
+                                                    className="mt-8 mb-4 text-primary/80 font-bold text-xs uppercase tracking-widest font-sans bg-slate-100 dark:bg-white/5 inline-block px-2 py-1 rounded"
+                                                >
+                                                    {line.label} {line.pause > 0 && <span className="ml-2 text-[10px] opacity-60">({line.pause}s pause)</span>}
+                                                </p>
                                             );
                                         }
 
+                                        if (line.type === 'lyrics') {
+                                            return (
+                                                <p
+                                                    key={i}
+                                                    ref={el => lineRefs.current[`${songIdx}-${i}`] = el}
+                                                    className="mb-2 whitespace-pre-wrap text-slate-900 dark:text-slate-100"
+                                                >
+                                                    {line.content} {line.pause > 0 && <span className="ml-2 text-[10px] text-primary/60">(pause {line.pause}s)</span>}
+                                                </p>
+                                            );
+                                        }
+
+                                        const lineHasLyrics = hasLyricsText(line);
+
                                         return (
-                                            <React.Fragment key={j}>
-                                                {transposedChord && (
-                                                    <span className="relative inline-block w-0 h-0 align-baseline">
-                                                        <span className="absolute left-0 bottom-0 -translate-y-[1.25em] text-primary font-bold text-[0.9em] leading-none whitespace-nowrap">
-                                                            <ChordTooltip chordName={transposedChord}>
-                                                                {transposedChord}
-                                                            </ChordTooltip>
-                                                        </span>
-                                                    </span>
-                                                )}
-                                                {/* Render actual lyrics inline */}
-                                                <span className="text-slate-900 dark:text-slate-100">{segmentLyrics}</span>
-                                            </React.Fragment>
+                                            <div
+                                                key={i}
+                                                ref={el => lineRefs.current[`${songIdx}-${i}`] = el}
+                                                className={`whitespace-pre-wrap break-words ${lineHasLyrics ? 'mt-2 mb-4 leading-[2.5]' : 'mt-4 mb-2 leading-normal'}`}
+                                            >
+                                                {line.pause > 0 && <div className="text-[10px] text-primary/60 mb-1 opacity-60">(pause {line.pause}s)</div>}
+                                                {line.segments.map((segment, j) => {
+                                                    const transposedChord = segment.chord
+                                                        ? transposeNote(segment.chord, vs.transposition || 0)
+                                                        : null;
+
+                                                    const segmentLyrics = segment.lyrics || '';
+
+                                                    if (!lineHasLyrics) {
+                                                        return (
+                                                            <React.Fragment key={j}>
+                                                                {transposedChord && (
+                                                                    <ChordTooltip chordName={transposedChord}>
+                                                                        <span className="text-primary font-bold">{transposedChord}</span>
+                                                                    </ChordTooltip>
+                                                                )}
+                                                                <span className="text-slate-900 dark:text-slate-100">{segmentLyrics}</span>
+                                                            </React.Fragment>
+                                                        );
+                                                    }
+
+                                                    return (
+                                                        <React.Fragment key={j}>
+                                                            {transposedChord && (
+                                                                <span className="relative inline-block w-0 h-0 align-baseline">
+                                                                    <span className="absolute left-0 bottom-0 -translate-y-[1.25em] text-primary font-bold text-[0.9em] leading-none whitespace-nowrap">
+                                                                        <ChordTooltip chordName={transposedChord}>
+                                                                            {transposedChord}
+                                                                        </ChordTooltip>
+                                                                    </span>
+                                                                </span>
+                                                            )}
+                                                            <span className="text-slate-900 dark:text-slate-100">{segmentLyrics}</span>
+                                                        </React.Fragment>
+                                                    );
+                                                })}
+                                            </div>
                                         );
                                     })}
-                                </div>
-                            );
-                        })}
 
-                        <div className="h-48 text-center text-slate-500 text-sm py-10">{t('editor.endOfSong')}</div>
-                    </div>
+                                    <div className={cn("text-center text-slate-500 text-sm", songIdx === viewerSongs.length - 1 ? "h-48 py-10" : "py-4")}>Fim de "{vs.title}"</div>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </main>
 
@@ -398,13 +500,13 @@ function SongViewer() {
                 isPlaying ? "-bottom-40 opacity-0 pointer-events-none" : "bottom-6 opacity-100"
             )}>
                 <div className="bg-white dark:bg-[#1a2332] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl p-3 flex flex-col gap-4 backdrop-blur-xl bg-opacity-95 dark:bg-opacity-95">
-                    {/* Navigation Bar for Mobile (Optional visual cue) */}
+                    {/* Navigation Bar for Mobile */}
                     <div className="flex items-center justify-between md:hidden pb-2 border-b border-slate-100 dark:border-white/5">
-                        <button disabled={!prevSongId} onClick={() => navigateToSong(prevSongId)} className="p-2 text-slate-400 disabled:opacity-20 hover:text-primary">
+                        <button disabled={!prevSongId && activeSongIndex === 0} onClick={handlePrevSong} className="p-2 text-slate-400 disabled:opacity-20 hover:text-primary">
                             <span className="material-symbols-outlined">skip_previous</span>
                         </button>
                         <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">{setlistId ? 'Setlist' : 'Library'}</span>
-                        <button disabled={!nextSongId} onClick={() => navigateToSong(nextSongId)} className="p-2 text-slate-400 disabled:opacity-20 hover:text-primary">
+                        <button disabled={!nextSongId && activeSongIndex === viewerSongs.length - 1} onClick={handleNextSong} className="p-2 text-slate-400 disabled:opacity-20 hover:text-primary">
                             <span className="material-symbols-outlined">skip_next</span>
                         </button>
                     </div>
@@ -459,12 +561,12 @@ function SongViewer() {
                                 min="0.1"
                                 max="3"
                                 step="0.1"
-                                value={scrollSpeed}
-                                onChange={(e) => setScrollSpeed(parseFloat(e.target.value))}
+                                value={activeSong?.scrollSpeed || 1}
+                                onChange={(e) => updateSongSetting(activeSong.id, 'scrollSpeed', parseFloat(e.target.value))}
                                 className="w-full h-1.5 bg-slate-300 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
                             />
                         </div>
-                        <span className="text-slate-900 dark:text-white font-medium w-8 text-right tabular-nums">{scrollSpeed}x</span>
+                        <span className="text-slate-900 dark:text-white font-medium w-8 text-right tabular-nums">{activeSong?.scrollSpeed || 1}x</span>
                     </div>
 
                     {/* Font Size Control */}
@@ -476,12 +578,12 @@ function SongViewer() {
                                 min="12"
                                 max="32"
                                 step="1"
-                                value={fontSize}
-                                onChange={(e) => setFontSize(parseInt(e.target.value))}
+                                value={activeSong?.fontSize || 14}
+                                onChange={(e) => updateSongSetting(activeSong.id, 'fontSize', parseInt(e.target.value))}
                                 className="w-full h-1.5 bg-slate-300 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
                             />
                         </div>
-                        <span className="text-slate-900 dark:text-white font-medium w-8 text-right tabular-nums">{fontSize}px</span>
+                        <span className="text-slate-900 dark:text-white font-medium w-8 text-right tabular-nums">{activeSong?.fontSize || 14}px</span>
                     </div>
                 </div>
             </div>

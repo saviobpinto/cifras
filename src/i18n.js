@@ -64,6 +64,11 @@ const resources = {
                 "create": "Create",
                 "setlistNamePlaceholder": "Setlist Name (e.g. Wedding Gig)",
                 "deleteConfirmation": "Delete this setlist?",
+                "continuousScroll": "Continuous Scroll",
+                "continuousScrollDesc": "Automatically scroll the next song when current ends",
+                "addToSetlist": "Add to Setlist",
+                "noSetlistsYet": "No setlists created yet.",
+                "songOf": "Song {{index}} of {{total}}",
                 "nav": {
                     "dashboard": "Dashboard",
                     "library": "Library",
@@ -161,6 +166,11 @@ const resources = {
                 "create": "Criar",
                 "setlistNamePlaceholder": "Nome do Setlist (ex: Casamento)",
                 "deleteConfirmation": "Excluir este setlist?",
+                "continuousScroll": "Rolagem Contínua",
+                "continuousScrollDesc": "Inicia a rolagem da próxima música automaticamente ao fim da anterior",
+                "addToSetlist": "Adicionar ao Setlist",
+                "noSetlistsYet": "Nenhum setlist criado ainda.",
+                "songOf": "Música {{index}} de {{total}}",
                 "nav": {
                     "dashboard": "Início",
                     "library": "Biblioteca",

@@ -18,8 +18,8 @@ export default defineConfig({
         clientsClaim: true
       },
       manifest: {
-        name: 'Cifras App',
-        short_name: 'Cifras',
+        name: 'My Setlist',
+        short_name: 'My Setlist',
         description: 'Seu repertório de cifras',
         theme_color: '#0f172a',
         background_color: '#0f172a',
