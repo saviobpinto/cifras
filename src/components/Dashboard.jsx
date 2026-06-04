@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useSongs } from '../contexts/SongContext';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -42,9 +43,24 @@ const calculateSetlistDuration = (setlist, allSongs) => {
 
 function Dashboard() {
     const { t } = useTranslation();
-    const { songs, setlists, setCurrentSong, addSetlist, deleteSetlist } = useSongs();
+    const { songs, setlists, setCurrentSong, addSetlist, deleteSetlist, reorderSetlists } = useSongs();
     const { user, isOfflineMode } = useAuth();
     const navigate = useNavigate();
+
+    const handleDragEnd = (result) => {
+        if (!result.destination) return;
+
+        const sourceIndex = result.source.index;
+        const destinationIndex = result.destination.index;
+
+        if (sourceIndex === destinationIndex) return;
+
+        const newSetlistOrder = Array.from(setlists);
+        const [removed] = newSetlistOrder.splice(sourceIndex, 1);
+        newSetlistOrder.splice(destinationIndex, 0, removed);
+
+        reorderSetlists(newSetlistOrder);
+    };
 
     const displayName = isOfflineMode 
         ? t('dashboard.musician') 
@@ -143,34 +159,60 @@ function Dashboard() {
                             </form>
                         )}
 
-                        <div className="flex flex-col gap-3">
-                            {setlists.map(setlist => (
-                                <Link to={`/setlist/${setlist.id}`} key={setlist.id} className="group flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-800 active:border-primary dark:active:border-primary transition-colors cursor-pointer relative">
-                                    <div className="flex-1 min-w-0 px-1">
-                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">{setlist.title}</h4>
-                                        <div className="flex items-center gap-3 mt-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                                            <span className="flex items-center gap-1">
-                                                <span className="material-symbols-outlined text-[12px]">music_note</span> {setlist.songs.length} {t('dashboard.songs')}
-                                            </span>
-                                            <span className="flex items-center gap-1 ml-2">
-                                                <span className="material-symbols-outlined text-[12px]">schedule</span> {calculateSetlistDuration(setlist, songs)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    {/* Delete Action (Hidden by default, visible on hover/focus or could be in menu) */}
-                                    <button
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            if (confirm(t('dashboard.deleteConfirmation'))) deleteSetlist(setlist.id);
-                                        }}
-                                        className="p-2 rounded-full text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                        <DragDropContext onDragEnd={handleDragEnd}>
+                            <Droppable droppableId="setlists-list">
+                                {(provided) => (
+                                    <div
+                                        {...provided.droppableProps}
+                                        ref={provided.innerRef}
+                                        className="flex flex-col gap-3"
                                     >
-                                        <span className="material-symbols-outlined">delete</span>
-                                    </button>
-                                </Link>
-                            ))}
-                        </div>
+                                        {setlists.map((setlist, index) => (
+                                            <Draggable key={setlist.id} draggableId={setlist.id} index={index}>
+                                                {(provided, snapshot) => (
+                                                    <div
+                                                        ref={provided.innerRef}
+                                                        {...provided.draggableProps}
+                                                        style={provided.draggableProps.style}
+                                                        className={`group flex items-center gap-3 p-4 rounded-xl bg-white dark:bg-surface-dark border ${snapshot.isDragging ? 'border-primary shadow-lg scale-105 z-50' : 'border-slate-200 dark:border-slate-800'} active:border-primary dark:active:border-primary transition-all relative`}
+                                                    >
+                                                        {/* Drag Handle */}
+                                                        <div {...provided.dragHandleProps} className="text-slate-300 cursor-grab active:cursor-grabbing p-1 -ml-2">
+                                                            <span className="material-symbols-outlined">drag_indicator</span>
+                                                        </div>
+
+                                                        {/* Clickable Card Content */}
+                                                        <div className="flex-1 min-w-0 px-1 cursor-pointer" onClick={() => navigate(`/setlist/${setlist.id}`)}>
+                                                            <h4 className="text-sm font-bold text-slate-900 dark:text-white truncate">{setlist.title}</h4>
+                                                            <div className="flex items-center gap-3 mt-1 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                                                                <span className="flex items-center gap-1">
+                                                                    <span className="material-symbols-outlined text-[12px]">music_note</span> {setlist.songs.length} {t('dashboard.songs')}
+                                                                </span>
+                                                                <span className="flex items-center gap-1 ml-2">
+                                                                    <span className="material-symbols-outlined text-[12px]">schedule</span> {calculateSetlistDuration(setlist, songs)}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Delete Action */}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (confirm(t('dashboard.deleteConfirmation'))) deleteSetlist(setlist.id);
+                                                            }}
+                                                            className="p-2 rounded-full text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                                                        >
+                                                            <span className="material-symbols-outlined">delete</span>
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </Draggable>
+                                        ))}
+                                        {provided.placeholder}
+                                    </div>
+                                )}
+                            </Droppable>
+                        </DragDropContext>
                     </section>
                 </main>
                 {/* Bottom Navigation Bar */}

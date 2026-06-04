@@ -50,6 +50,15 @@ You're my [Em7]wonderwall [Cadd9] [Em7] [G] [Em7]`,
     lastEdited: new Date().toISOString()
 };
 
+const sortSetlists = (list) => {
+    return [...list].sort((a, b) => {
+        const orderA = a.order !== undefined ? a.order : -1;
+        const orderB = b.order !== undefined ? b.order : -1;
+        if (orderA !== orderB) return orderA - orderB;
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
+};
+
 export function SongProvider({ children }) {
     const { session, isOfflineMode, isPremium } = useAuth();
     const [songs, setSongs] = useState([DEFAULT_SONG]);
@@ -133,7 +142,7 @@ export function SongProvider({ children }) {
             let mergedSetlistsMap = new Map();
             setlists.forEach(s => mergedSetlistsMap.set(s.id, s));
             validCloudSetlists.forEach(s => mergedSetlistsMap.set(s.id, s));
-            let mergedSetlists = Array.from(mergedSetlistsMap.values());
+            let mergedSetlists = sortSetlists(Array.from(mergedSetlistsMap.values()));
             let localOnlySetlists = setlists.filter(s => !cloudSetlistsMap.has(s.id));
 
             if (mergedSongs.length > 0) {
@@ -238,7 +247,7 @@ export function SongProvider({ children }) {
                 const savedSongs = await get('cifras-app-songs');
                 if (savedSongs) setSongs(savedSongs);
                 const savedSetlists = await get('cifras-app-setlists');
-                if (savedSetlists) setSetlists(savedSetlists);
+                if (savedSetlists) setSetlists(sortSetlists(savedSetlists));
             } catch (err) {
                 console.error("IDB load error", err);
             } finally {
@@ -489,6 +498,15 @@ export function SongProvider({ children }) {
         }));
     };
 
+    const reorderSetlists = (newOrder) => {
+        const updated = newOrder.map((s, idx) => {
+            const up = { ...s, order: idx };
+            syncRowToCloud('cifras_setlists', s.id, up, false);
+            return up;
+        });
+        setSetlists(updated);
+    };
+
     const exportSetlists = (selectedSetlistIds = null) => {
         let exportSetlistsData = setlists;
         let exportSongsData = songs;
@@ -566,6 +584,7 @@ export function SongProvider({ children }) {
             addToSetlist,
             removeFromSetlist,
             reorderSetlist,
+            reorderSetlists,
             exportSetlists,
             importData,
             theme,

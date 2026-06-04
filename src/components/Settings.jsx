@@ -131,7 +131,6 @@ function Settings() {
             <main className="flex-1 overflow-y-auto pb-24">
                 <div className="max-w-md mx-auto w-full px-4 pt-6 space-y-8">
 
-                    {/* Premium / Upgrade Section */}
                     <section className="bg-gradient-to-br from-slate-900 to-indigo-950 dark:from-slate-800 dark:to-indigo-950/40 rounded-2xl p-5 border border-amber-500/20 shadow-xl relative overflow-hidden text-white">
                         <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl -translate-y-8 translate-x-8"></div>
                         <div className="relative z-10 space-y-4">
@@ -152,14 +151,6 @@ function Settings() {
                                     <p className="text-sm text-slate-300 leading-relaxed">
                                         Parabéns! Você tem acesso ilimitado a todas as funcionalidades: backup em nuvem, músicas ilimitadas na biblioteca e acesso offline.
                                     </p>
-                                    <div className="pt-2 border-t border-white/10 flex flex-col gap-2">
-                                        <button
-                                            onClick={togglePremiumMock}
-                                            className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-xl font-bold text-xs transition-all border border-white/5"
-                                        >
-                                            Simular Desativar Premium (Testes)
-                                        </button>
-                                    </div>
                                 </div>
                             ) : (
                                 <div className="space-y-4">
