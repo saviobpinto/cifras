@@ -20,7 +20,7 @@ serve(async (req) => {
     }
 
     // Faz a chamada à API do Mercado Pago para criar a preferência de pagamento
-    const response = await fetch('https://api.mercadopago.com/v1/checkouts/preferences', {
+    const response = await fetch('https://api.mercadopago.com/checkout/preferences', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${Deno.env.get('MERCADO_PAGO_ACCESS_TOKEN')}`,
