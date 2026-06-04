@@ -11,6 +11,11 @@ export const AuthProvider = ({ children }) => {
     return localStorage.getItem('cifras-app-offline') === 'true';
   });
 
+  // Estado da assinatura Premium
+  const [isPremium, setIsPremium] = useState(() => {
+    return localStorage.getItem('cifras-app-premium-mock') === 'true';
+  });
+
   const enableOfflineMode = () => {
     setIsOfflineMode(true);
     localStorage.setItem('cifras-app-offline', 'true');
@@ -21,6 +26,53 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('cifras-app-offline');
   };
 
+  // Função para simular assinatura para testes locais
+  const togglePremiumMock = () => {
+    setIsPremium(prev => {
+      const next = !prev;
+      localStorage.setItem('cifras-app-premium-mock', next ? 'true' : 'false');
+      localStorage.setItem('cifras-app-premium-supabase', next ? 'true' : 'false');
+      return next;
+    });
+  };
+
+  // Carregar dados de assinatura
+  const fetchProfile = async (currentUser) => {
+    if (!currentUser) {
+      setIsPremium(localStorage.getItem('cifras-app-premium-mock') === 'true');
+      return;
+    }
+
+    try {
+      // 1. Tentar ler da tabela de perfis no Supabase
+      const { data, error } = await supabase
+        .from('cifras_profiles')
+        .select('is_premium')
+        .eq('id', currentUser.id)
+        .maybeSingle();
+
+      if (data && data.is_premium !== undefined) {
+        setIsPremium(!!data.is_premium);
+        localStorage.setItem('cifras-app-premium-supabase', data.is_premium ? 'true' : 'false');
+        return;
+      }
+    } catch (e) {
+      console.warn("Tabela de perfis não encontrada. Utilizando fallback.", e);
+    }
+
+    // 2. Fallback para os metadados do usuário (Supabase Auth metadata)
+    const metadataPremium = currentUser.user_metadata?.is_premium;
+    if (metadataPremium !== undefined) {
+      setIsPremium(!!metadataPremium);
+      localStorage.setItem('cifras-app-premium-supabase', metadataPremium ? 'true' : 'false');
+      return;
+    }
+
+    // 3. Fallback final para o mock do localStorage
+    const mockVal = localStorage.getItem('cifras-app-premium-mock') === 'true';
+    setIsPremium(mockVal);
+  };
+
   useEffect(() => {
     // Buscar a sessão inicial do Supabase
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -28,8 +80,10 @@ export const AuthProvider = ({ children }) => {
       setUser(session?.user ?? null);
       if (session) {
           disableOfflineMode(); // If they log in, exit offline mode
+          fetchProfile(session.user);
+      } else {
+          setLoading(false);
       }
-      setLoading(false);
     }).catch(err => {
       console.error('Erro ao buscar sessão:', err);
       setLoading(false);
@@ -41,17 +95,29 @@ export const AuthProvider = ({ children }) => {
       setUser(session?.user ?? null);
       if (session) {
           disableOfflineMode();
+          fetchProfile(session.user);
+      } else {
+          setIsPremium(localStorage.getItem('cifras-app-premium-mock') === 'true');
+          setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  // Assim que terminar o fetchProfile, define loading como false
+  useEffect(() => {
+    if (session?.user) {
+      fetchProfile(session.user).finally(() => setLoading(false));
+    }
+  }, [session]);
+
   const value = {
     session,
     user,
     loading,
+    isPremium,
+    togglePremiumMock,
     isOfflineMode,
     enableOfflineMode,
     disableOfflineMode

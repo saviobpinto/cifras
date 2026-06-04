@@ -10,8 +10,9 @@ import { supabase } from '../lib/supabase';
 
 function Settings() {
     const navigate = useNavigate();
-    const { theme, toggleTheme, importSongs, clearAllSongs, keepAwake, toggleKeepAwake, exportSetlists, importData, setlists, syncProgress, manualSync } = useSongs();
+    const { songs, theme, toggleTheme, importSongs, clearAllSongs, keepAwake, toggleKeepAwake, exportSetlists, importData, setlists, syncProgress, manualSync } = useSongs();
     const { t, i18n } = useTranslation();
+    const { user, isPremium, togglePremiumMock } = useAuth();
     const isDark = theme === 'dark';
 
     const changeLanguage = (lng) => {
@@ -42,12 +43,32 @@ function Settings() {
     };
 
     const handleImportIpad = async () => {
+        if (!isPremium && songs.length >= 30) {
+            alert("A versão gratuita é limitada a 30 músicas na biblioteca. Assine o plano Premium para ter músicas ilimitadas!");
+            navigate('/settings?upgrade=true');
+            return;
+        }
         setImportMessage("Baixando catálogo...");
         try {
             const catalogUrl = 'https://dl.dropboxusercontent.com/scl/fi/dof1r50506a7fbqckkt7e/ipadSongs.json?rlkey=b0rgqpdplf9la82az7ddzwtzp';
             const response = await fetch(catalogUrl);
             if (!response.ok) throw new Error('Falha ao baixar catálogo');
-            const data = await response.json();
+            let data = await response.json();
+
+            if (!isPremium) {
+                // Seleciona 30 músicas de forma aleatória do catálogo
+                const shuffled = [...data].sort(() => 0.5 - Math.random());
+                const maxImportCount = Math.max(0, 30 - songs.length);
+                data = shuffled.slice(0, maxImportCount);
+
+                if (data.length === 0) {
+                    alert("Sua biblioteca já atingiu o limite de 30 músicas.");
+                    setImportMessage("");
+                    return;
+                }
+                alert(`Como usuário gratuito, apenas ${data.length} músicas aleatórias do catálogo foram importadas para respeitar o limite de 30 músicas.`);
+            }
+
             importSongs(data);
             setImportMessage("Catálogo importado com sucesso!");
         } catch (error) {
@@ -55,6 +76,34 @@ function Settings() {
             setImportMessage("Erro ao importar o catálogo");
         }
         setTimeout(() => setImportMessage(''), 3000);
+    };
+
+    const handleSubscribeMercadoPago = async () => {
+        if (!user) {
+            alert("Você precisa estar logado para assinar o plano Premium.");
+            navigate('/login');
+            return;
+        }
+        
+        setImportMessage("Gerando pagamento...");
+        try {
+            // Chama a Edge Function no Supabase para gerar a preferência de pagamento
+            const { data, error } = await supabase.functions.invoke('create-preference', {
+                body: { userId: user.id, email: user.email }
+            });
+            
+            if (error) throw error;
+            if (data && data.checkoutUrl) {
+                window.open(data.checkoutUrl, "_blank");
+            } else {
+                throw new Error("Resposta inválida do servidor");
+            }
+        } catch (err) {
+            console.error("Erro ao gerar link de pagamento:", err);
+            alert("Erro ao conectar com o Mercado Pago. Tente novamente mais tarde.");
+        } finally {
+            setImportMessage("");
+        }
     };
 
     const handleClearAll = () => {
@@ -81,6 +130,71 @@ function Settings() {
             </header>
             <main className="flex-1 overflow-y-auto pb-24">
                 <div className="max-w-md mx-auto w-full px-4 pt-6 space-y-8">
+
+                    {/* Premium / Upgrade Section */}
+                    <section className="bg-gradient-to-br from-slate-900 to-indigo-950 dark:from-slate-800 dark:to-indigo-950/40 rounded-2xl p-5 border border-amber-500/20 shadow-xl relative overflow-hidden text-white">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl -translate-y-8 translate-x-8"></div>
+                        <div className="relative z-10 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-extrabold tracking-wider uppercase text-amber-400 flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-[20px] text-amber-400 fill-1">workspace_premium</span>
+                                    Assinatura Premium
+                                </h3>
+                                {isPremium && (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-emerald-500 text-white">
+                                        Ativo
+                                    </span>
+                                )}
+                            </div>
+
+                            {isPremium ? (
+                                <div className="space-y-3">
+                                    <p className="text-sm text-slate-300 leading-relaxed">
+                                        Parabéns! Você tem acesso ilimitado a todas as funcionalidades: backup em nuvem, músicas ilimitadas na biblioteca e acesso offline.
+                                    </p>
+                                    <div className="pt-2 border-t border-white/10 flex flex-col gap-2">
+                                        <button
+                                            onClick={togglePremiumMock}
+                                            className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-xl font-bold text-xs transition-all border border-white/5"
+                                        >
+                                            Simular Desativar Premium (Testes)
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <p className="text-sm text-slate-300 leading-relaxed">
+                                        Libere o potencial completo do aplicativo de cifras e melhore suas apresentações:
+                                    </p>
+                                    <ul className="text-xs text-slate-300/80 space-y-1.5 list-disc list-inside">
+                                        <li>Músicas ilimitadas na biblioteca (Grátis: limite de 30)</li>
+                                        <li>Backup e sincronização em nuvem automáticos</li>
+                                        <li>Acesso offline total sem internet</li>
+                                        <li>Importação de catálogo com mais de 30mil cifras</li>
+                                    </ul>
+
+                                    <div className="pt-2 border-t border-white/10 flex flex-col gap-3">
+                                        {/* Botão Oficial Mercado Pago */}
+                                        <button 
+                                            onClick={handleSubscribeMercadoPago}
+                                            disabled={importMessage === "Gerando pagamento..."}
+                                            className="w-full bg-primary hover:bg-primary-light disabled:opacity-75 text-white py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-1.5"
+                                        >
+                                            Assinar Premium (pagamento único R$ 29,90)
+                                        </button>
+
+                                        {/* Botão de teste rápido */}
+                                        <button
+                                            onClick={togglePremiumMock}
+                                            className="w-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 py-2.5 rounded-xl font-bold text-xs transition-all border border-amber-500/20"
+                                        >
+                                            Simular Ativação Premium (Testes)
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </section>
 
                     {/* General Settings Group */}
                     <section>
@@ -147,7 +261,7 @@ function Settings() {
                     <section>
                         <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-2">{t('settings.data')}</h3>
                         <div className="bg-surface-light dark:bg-surface-dark rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700/50 divide-y divide-slate-200 dark:divide-slate-700/50">
-                            
+
                             {/* Sincronização Manual */}
                             <div className="flex flex-col p-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/20">
                                 <div className="flex items-center justify-between">
@@ -156,12 +270,21 @@ function Settings() {
                                             <span className="material-symbols-outlined text-xl">sync</span>
                                         </div>
                                         <div className="flex flex-col">
-                                            <span className="font-medium text-base text-slate-900 dark:text-white">{t('settings.sync')}</span>
+                                            <span className="font-medium text-base text-slate-900 dark:text-white flex items-center gap-1.5">
+                                                {t('settings.sync')}
+                                                {!isPremium && <span className="material-symbols-outlined text-amber-500 text-xs fill-1">lock</span>}
+                                            </span>
                                             <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.syncDesc')}</span>
                                         </div>
                                     </div>
-                                    <button 
-                                        onClick={manualSync} 
+                                    <button
+                                        onClick={() => {
+                                            if (!isPremium) {
+                                                alert("A sincronização em nuvem (backup) é uma funcionalidade exclusiva para assinantes Premium.");
+                                                return;
+                                            }
+                                            manualSync();
+                                        }}
                                         disabled={syncProgress?.isSyncing}
                                         className="bg-primary hover:bg-primary-light disabled:opacity-50 text-white font-medium text-sm px-4 py-2 rounded-lg transition-colors"
                                     >
@@ -175,7 +298,7 @@ function Settings() {
                                             <span>{syncProgress.progress}%</span>
                                         </div>
                                         <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
-                                            <div 
+                                            <div
                                                 className="bg-primary h-2 rounded-full transition-all duration-300"
                                                 style={{ width: `${syncProgress.progress}%` }}
                                             ></div>
@@ -185,25 +308,43 @@ function Settings() {
                             </div>
 
                             {/* Export Backup */}
-                            <div onClick={() => setShowExportModal(true)} className="flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors cursor-pointer group">
+                            <div onClick={() => {
+                                if (!isPremium) {
+                                    alert("A exportação de backups é uma funcionalidade exclusiva para assinantes Premium.");
+                                    return;
+                                }
+                                setShowExportModal(true);
+                            }} className="flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors cursor-pointer group">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500">
                                         <span className="material-symbols-outlined text-xl">upload</span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-medium text-base text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors">{t('settings.exportBackup')}</span>
+                                        <span className="font-medium text-base text-slate-900 dark:text-white group-hover:text-emerald-500 transition-colors flex items-center gap-1.5">
+                                            {t('settings.exportBackup')}
+                                            {!isPremium && <span className="material-symbols-outlined text-amber-500 text-xs">lock</span>}
+                                        </span>
                                         <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.exportBackupDesc')}</span>
                                     </div>
                                 </div>
                             </div>
                             {/* Import Backup */}
-                            <div onClick={() => fileInputRef.current?.click()} className="flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors cursor-pointer group">
+                            <div onClick={() => {
+                                if (!isPremium) {
+                                    alert("A importação de backups é uma funcionalidade exclusiva para assinantes Premium.");
+                                    return;
+                                }
+                                fileInputRef.current?.click();
+                            }} className="flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors cursor-pointer group">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-500">
                                         <span className="material-symbols-outlined text-xl">file_download</span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="font-medium text-base text-slate-900 dark:text-white group-hover:text-cyan-500 transition-colors">{t('settings.importBackup')}</span>
+                                        <span className="font-medium text-base text-slate-900 dark:text-white group-hover:text-cyan-500 transition-colors flex items-center gap-1.5">
+                                            {t('settings.importBackup')}
+                                            {!isPremium && <span className="material-symbols-outlined text-amber-500 text-xs">lock</span>}
+                                        </span>
                                         <span className="text-xs text-slate-500 dark:text-slate-400">{t('settings.importBackupDesc')}</span>
                                     </div>
                                 </div>
@@ -248,11 +389,11 @@ function Settings() {
                         <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-2">{t('settings.account')}</h3>
                         <div className="bg-surface-light dark:bg-surface-dark rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700/50 divide-y divide-slate-200 dark:divide-slate-700/50">
                             {/* Logout */}
-                            <div 
+                            <div
                                 onClick={async () => {
                                     await supabase.auth.signOut();
                                     navigate('/login');
-                                }} 
+                                }}
                                 className="flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors cursor-pointer group"
                             >
                                 <div className="flex items-center gap-3">
@@ -291,7 +432,7 @@ function Settings() {
                             ) : (
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer" onClick={() => {
-                                        if (selectedSetlists.length === setlists.length) setSelectedSetlists([]);   
+                                        if (selectedSetlists.length === setlists.length) setSelectedSetlists([]);
                                         else setSelectedSetlists(setlists.map(s => s.id));
                                     }}>
                                         <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedSetlists.length === setlists.length ? 'bg-primary border-primary' : 'border-slate-400'}`}>
@@ -318,15 +459,15 @@ function Settings() {
                             )}
                         </div>
                         <div className="p-4 border-t border-border-light dark:border-border-dark flex flex-col gap-3">
-                            <button 
-                                onClick={() => { exportSetlists(); setShowExportModal(false); }} 
+                            <button
+                                onClick={() => { exportSetlists(); setShowExportModal(false); }}
                                 className="w-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white py-3 rounded-xl font-bold transition-all text-sm"
                             >
                                 Exportar Tudo (Biblioteca Completa)
                             </button>
-                            <button 
+                            <button
                                 disabled={selectedSetlists.length === 0 && setlists.length > 0}
-                                onClick={() => { exportSetlists(selectedSetlists); setShowExportModal(false); }} 
+                                onClick={() => { exportSetlists(selectedSetlists); setShowExportModal(false); }}
                                 className="w-full bg-primary hover:bg-primary-light text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 text-sm"
                             >
                                 Exportar Selecionados ({selectedSetlists.length})

@@ -51,7 +51,7 @@ You're my [Em7]wonderwall [Cadd9] [Em7] [G] [Em7]`,
 };
 
 export function SongProvider({ children }) {
-    const { session, isOfflineMode } = useAuth();
+    const { session, isOfflineMode, isPremium } = useAuth();
     const [songs, setSongs] = useState([DEFAULT_SONG]);
 
     const [setlists, setSetlists] = useState([
@@ -64,6 +64,10 @@ export function SongProvider({ children }) {
     const [syncProgress, setSyncProgress] = useState({ isSyncing: false, progress: 0, statusText: '' });
 
     const manualSync = async () => {
+        if (!isPremium) {
+            setSyncProgress({ isSyncing: false, progress: 0, statusText: 'A sincronização em nuvem requer assinatura Premium.' });
+            return;
+        }
         if (!session?.user || isOfflineMode) return;
         
         setSyncProgress({ isSyncing: true, progress: 0, statusText: 'Iniciando sincronização...' });
@@ -208,7 +212,7 @@ export function SongProvider({ children }) {
     };
 
     const syncRowToCloud = async (table, id, data, deleted = false) => {
-        if (!isCloudSynced || !session?.user || isOfflineMode) return;
+        if (!isPremium || !isCloudSynced || !session?.user || isOfflineMode) return;
         try {
             // Remove null bytes that break postgresql JSONB
             let safeData = data || {};
@@ -346,6 +350,11 @@ export function SongProvider({ children }) {
 
     // Song Functions
     const addSong = (songData) => {
+        if (!isPremium && songs.length >= 30) {
+            alert("A versão gratuita é limitada a 30 músicas na biblioteca. Assine o plano Premium para ter músicas ilimitadas!");
+            window.location.href = '/settings?upgrade=true';
+            return null;
+        }
         const newSong = {
             fontSize: 14,
             ...songData,
@@ -392,14 +401,21 @@ export function SongProvider({ children }) {
     };
 
     const importSongs = (newSongs) => {
-        // Simple merge, no duplicates check for now, or we can check by title/artist
-        const songsToAdd = newSongs.map(s => ({
+        let songsToAdd = newSongs;
+        if (!isPremium) {
+            const allowedCount = Math.max(0, 30 - songs.length);
+            songsToAdd = newSongs.slice(0, allowedCount);
+            if (songsToAdd.length < newSongs.length) {
+                alert(`Limite de 30 músicas atingido. Apenas ${songsToAdd.length} de ${newSongs.length} músicas foram importadas.`);
+            }
+        }
+        const formattedSongs = songsToAdd.map(s => ({
             fontSize: 14,
             ...s,
             id: uuidv4(),
             lastEdited: new Date().toISOString()
         }));
-        setSongs(prev => [...songsToAdd, ...prev]);
+        setSongs(prev => [...formattedSongs, ...prev]);
     };
 
     const clearAllSongs = () => {

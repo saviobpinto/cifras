@@ -20,6 +20,12 @@ function Login() {
   }, [session, navigate]);
 
   const handleOfflineAccess = () => {
+    const wasPremium = localStorage.getItem('cifras-app-premium-mock') === 'true' || 
+                       localStorage.getItem('cifras-app-premium-supabase') === 'true';
+    if (!wasPremium) {
+      alert('O acesso em modo offline (sem internet) é uma funcionalidade exclusiva para assinantes Premium. Faça login com conexão à internet para ativar ou validar sua assinatura.');
+      return;
+    }
     enableOfflineMode();
     navigate('/dashboard');
   };

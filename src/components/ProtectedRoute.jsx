@@ -38,6 +38,14 @@ function ProtectedRoute({ children }) {
         return <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark text-primary font-bold">Carregando...</div>;
     }
 
+    // Se o usuário tentar acessar offline mas não for Premium, redireciona para o login
+    const cachedPremium = localStorage.getItem('cifras-app-premium-mock') === 'true' || 
+                          localStorage.getItem('cifras-app-premium-supabase') === 'true';
+
+    if (!session && isOfflineMode && !cachedPremium) {
+        return <Navigate to="/login" replace />;
+    }
+
     if (!session && !isOfflineMode) {
         return <Navigate to="/login" replace />;
     }
