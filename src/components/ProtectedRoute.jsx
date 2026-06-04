@@ -5,7 +5,13 @@ import { useAuth } from '../contexts/AuthContext';
 function ProtectedRoute({ children }) {
     const { session, loading, isOfflineMode } = useAuth();
 
-    if (loading) {
+    // Verifica se a URL contém parâmetros de retorno do OAuth do Supabase
+    const isOAuthCallback = window.location.hash && (
+        window.location.hash.includes('access_token=') || 
+        window.location.hash.includes('recovery_token=')
+    );
+
+    if (loading || isOAuthCallback) {
         return <div className="min-h-screen flex items-center justify-center bg-background-light dark:bg-background-dark text-primary font-bold">Carregando...</div>;
     }
 

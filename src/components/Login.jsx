@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -11,7 +11,13 @@ function Login() {
   const [isSignUp, setIsSignUp] = useState(false);
   
   const navigate = useNavigate();
-  const { enableOfflineMode } = useAuth();
+  const { session, enableOfflineMode } = useAuth();
+
+  useEffect(() => {
+    if (session) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [session, navigate]);
 
   const handleOfflineAccess = () => {
     enableOfflineMode();
