@@ -69,6 +69,48 @@ function Settings() {
     const [selectedSetlists, setSelectedSetlists] = useState([]);
     const fileInputRef = useRef(null);
 
+    // Estados para o fluxo de alteração de senha
+    const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [changePasswordError, setChangePasswordError] = useState('');
+    const [changePasswordSuccess, setChangePasswordSuccess] = useState('');
+    const [changingPassword, setChangingPassword] = useState(false);
+
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        setChangePasswordError('');
+        setChangePasswordSuccess('');
+
+        if (newPassword.length < 6) {
+            setChangePasswordError('A nova senha precisa ter pelo menos 6 caracteres.');
+            return;
+        }
+
+        if (newPassword !== confirmNewPassword) {
+            setChangePasswordError('As senhas não coincidem.');
+            return;
+        }
+
+        setChangingPassword(true);
+        try {
+            const { error } = await supabase.auth.updateUser({ password: newPassword });
+            if (error) throw error;
+            
+            setChangePasswordSuccess('Senha alterada com sucesso!');
+            setNewPassword('');
+            setConfirmNewPassword('');
+            setTimeout(() => {
+                setShowChangePasswordModal(false);
+                setChangePasswordSuccess('');
+            }, 2000);
+        } catch (error) {
+            setChangePasswordError(error.message || 'Erro ao alterar a senha.');
+        } finally {
+            setChangingPassword(false);
+        }
+    };
+
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -468,6 +510,27 @@ function Settings() {
                     <section>
                         <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-2">{t('settings.account')}</h3>
                         <div className="bg-surface-light dark:bg-surface-dark rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700/50 divide-y divide-slate-200 dark:divide-slate-700/50">
+                            {/* Alterar Senha */}
+                            {user && (user.app_metadata?.provider === 'email' || user.identities?.some(id => id.provider === 'email')) && (
+                                <div
+                                    onClick={() => setShowChangePasswordModal(true)}
+                                    className="flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors cursor-pointer group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-500">
+                                            <span className="material-symbols-outlined text-xl">lock_reset</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="font-medium text-base text-slate-900 dark:text-white group-hover:text-indigo-500 transition-colors">Alterar Senha</span>
+                                            <span className="text-xs text-slate-500 dark:text-slate-400">Defina uma nova senha para sua conta</span>
+                                        </div>
+                                    </div>
+                                    <div className="text-slate-400">
+                                        <span className="material-symbols-outlined text-lg">chevron_right</span>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Logout */}
                             <div
                                 onClick={async () => {
@@ -553,6 +616,86 @@ function Settings() {
                                 Exportar Selecionados ({selectedSetlists.length})
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Change Password Modal */}
+            {showChangePasswordModal && (
+                <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-surface-light dark:bg-surface-dark w-full max-w-sm rounded-2xl shadow-xl overflow-hidden animate-slide-up flex flex-col">
+                        <div className="p-4 border-b border-border-light dark:border-border-dark flex justify-between items-center bg-surface-light dark:bg-surface-dark">
+                            <h3 className="font-bold text-lg">Alterar Senha</h3>
+                            <button onClick={() => {
+                                setShowChangePasswordModal(false);
+                                setChangePasswordError('');
+                                setChangePasswordSuccess('');
+                            }} className="text-slate-500 hover:text-slate-800 dark:hover:text-white">
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+                        <form onSubmit={handleChangePassword} className="p-4 space-y-4">
+                            {changePasswordError && (
+                                <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-3 rounded-lg text-xs text-center font-medium">
+                                    {changePasswordError}
+                                </div>
+                            )}
+                            {changePasswordSuccess && (
+                                <div className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 p-3 rounded-lg text-xs text-center font-medium">
+                                    {changePasswordSuccess}
+                                </div>
+                            )}
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+                                        Nova Senha
+                                    </label>
+                                    <input
+                                        type="password"
+                                        required
+                                        disabled={changingPassword || !!changePasswordSuccess}
+                                        placeholder="Mínimo de 6 caracteres"
+                                        className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary text-sm"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+                                        Confirmar Nova Senha
+                                    </label>
+                                    <input
+                                        type="password"
+                                        required
+                                        disabled={changingPassword || !!changePasswordSuccess}
+                                        placeholder="Repita a nova senha"
+                                        className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary text-sm"
+                                        value={confirmNewPassword}
+                                        onChange={(e) => setConfirmNewPassword(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                            <div className="pt-2 flex flex-col gap-3">
+                                <button
+                                    type="submit"
+                                    disabled={changingPassword || !!changePasswordSuccess}
+                                    className="w-full bg-primary hover:bg-primary-light text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 text-sm"
+                                >
+                                    {changingPassword ? 'Atualizando...' : 'Confirmar Alteração'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowChangePasswordModal(false);
+                                        setChangePasswordError('');
+                                        setChangePasswordSuccess('');
+                                    }}
+                                    className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 py-2.5 rounded-xl font-bold transition-all text-sm"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

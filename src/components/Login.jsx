@@ -8,7 +8,9 @@ function Login() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   
   const navigate = useNavigate();
   const { session, enableOfflineMode } = useAuth();
@@ -34,9 +36,16 @@ function Login() {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
+    setSuccessMsg('');
 
     try {
-      if (isSignUp) {
+      if (isForgotPassword) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + '/reset-password',
+        });
+        if (error) throw error;
+        setSuccessMsg('Link de recuperação enviado! Verifique seu email (inclusive na caixa de spam).');
+      } else if (isSignUp) {
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -62,6 +71,7 @@ function Login() {
   const handleGoogleAuth = async () => {
     setLoading(true);
     setErrorMsg('');
+    setSuccessMsg('');
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -81,13 +91,19 @@ function Login() {
       <div className="max-w-md w-full space-y-8 bg-surface-light dark:bg-surface-dark p-8 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-slate-900 dark:text-white">
-            {isSignUp ? 'Criar nova conta' : 'Entrar no Meu Setlist'}
+            {isForgotPassword ? 'Recuperar senha' : (isSignUp ? 'Criar nova conta' : 'Entrar no Meu Setlist')}
           </h2>
         </div>
         
         {errorMsg && (
           <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-3 rounded-lg text-sm text-center">
             {errorMsg}
+          </div>
+        )}
+
+        {successMsg && (
+          <div className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 p-3 rounded-lg text-sm text-center font-medium">
+            {successMsg}
           </div>
         )}
 
@@ -106,19 +122,36 @@ function Login() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                Senha
-              </label>
-              <input
-                type="password"
-                required
-                className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-                placeholder="Sua senha"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+            {!isForgotPassword && (
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Senha
+                  </label>
+                  {!isSignUp && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsForgotPassword(true);
+                        setErrorMsg('');
+                        setSuccessMsg('');
+                      }}
+                      className="text-xs text-primary hover:opacity-80 font-medium"
+                    >
+                      Esqueceu a senha?
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="password"
+                  required
+                  className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  placeholder="Sua senha"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">
@@ -127,10 +160,10 @@ function Login() {
               disabled={loading}
               className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-primary hover:bg-primary-light focus:outline-none transition-colors ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              {loading ? 'Aguarde...' : (isSignUp ? 'Cadastrar' : 'Entrar')}
+              {loading ? 'Aguarde...' : (isForgotPassword ? 'Enviar link de recuperação' : (isSignUp ? 'Cadastrar' : 'Entrar'))}
             </button>
 
-            {!isSignUp && (
+            {!isSignUp && !isForgotPassword && (
               <>
                 <div className="relative flex items-center py-2">
                   <div className="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
@@ -170,21 +203,41 @@ function Login() {
         </form>
 
         <div className="text-center mt-4 flex flex-col gap-3">
-          <button
-            type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
-            className="text-sm text-primary hover:opacity-80 font-medium"
-          >
-            {isSignUp ? 'Já tem uma conta? Faça login' : 'Não tem uma conta? Cadastre-se'}
-          </button>
+          {isForgotPassword ? (
+            <button
+              type="button"
+              onClick={() => {
+                setIsForgotPassword(false);
+                setErrorMsg('');
+                setSuccessMsg('');
+              }}
+              className="text-sm text-primary hover:opacity-80 font-medium"
+            >
+              Voltar para o login
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setErrorMsg('');
+                setSuccessMsg('');
+              }}
+              className="text-sm text-primary hover:opacity-80 font-medium"
+            >
+              {isSignUp ? 'Já tem uma conta? Faça login' : 'Não tem uma conta? Cadastre-se'}
+            </button>
+          )}
           
-          <button
-            type="button"
-            onClick={handleOfflineAccess}
-            className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors mt-2"
-          >
-            Continuar sem internet (Modo Offline)
-          </button>
+          {!isForgotPassword && (
+            <button
+              type="button"
+              onClick={handleOfflineAccess}
+              className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors mt-2"
+            >
+              Continuar sem internet (Modo Offline)
+            </button>
+          )}
         </div>
       </div>
     </div>
