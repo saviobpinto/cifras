@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSongs } from '../contexts/SongContext';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -10,10 +10,50 @@ import { supabase } from '../lib/supabase';
 
 function Settings() {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { songs, theme, toggleTheme, importSongs, clearAllSongs, keepAwake, toggleKeepAwake, exportSetlists, importData, setlists, syncProgress, manualSync } = useSongs();
     const { t, i18n } = useTranslation();
     const { user, isPremium } = useAuth();
     const isDark = theme === 'dark';
+
+    const handleVerifySubscription = async (showFeedback = true) => {
+        if (!user) return;
+        if (showFeedback) setImportMessage("Verificando pagamento...");
+        try {
+            const { data, error } = await supabase.functions.invoke('mercado-pago-webhook', {
+                body: { userId: user.id }
+            });
+            if (error) throw error;
+            if (data && data.isPremium) {
+                if (showFeedback) {
+                    alert("Assinatura Premium ativada com sucesso! Obrigado pelo apoio.");
+                }
+                window.location.reload();
+            } else {
+                if (showFeedback) {
+                    alert(data?.message || "Nenhum pagamento aprovado foi encontrado. Se você acabou de pagar por Pix, aguarde alguns segundos e clique novamente.");
+                }
+            }
+        } catch (err) {
+            console.error("Erro ao verificar assinatura:", err);
+            if (showFeedback) {
+                alert("Erro ao conectar com o servidor para verificação.");
+            }
+        } finally {
+            if (showFeedback) setImportMessage("");
+        }
+    };
+
+    // Auto-verify if returning from checkout
+    useEffect(() => {
+        const paymentParam = searchParams.get('payment');
+        if (paymentParam && user && !isPremium) {
+            const newParams = new URLSearchParams(searchParams);
+            newParams.delete('payment');
+            setSearchParams(newParams);
+            handleVerifySubscription(false);
+        }
+    }, [searchParams, user, isPremium]);
 
     const changeLanguage = (lng) => {
         i18n.changeLanguage(lng);
@@ -168,10 +208,20 @@ function Settings() {
                                         {/* Botão Oficial Mercado Pago */}
                                         <button 
                                             onClick={handleSubscribeMercadoPago}
-                                            disabled={importMessage === "Gerando pagamento..."}
+                                            disabled={importMessage === "Gerando pagamento..." || importMessage === "Verificando pagamento..."}
                                             className="w-full bg-primary hover:bg-primary-light disabled:opacity-75 text-white py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-1.5"
                                         >
                                             Assinar por R$ 29,90 (pagamento único)
+                                        </button>
+
+                                        {/* Botão de Verificação Manual */}
+                                        <button
+                                            onClick={() => handleVerifySubscription(true)}
+                                            disabled={importMessage === "Gerando pagamento..." || importMessage === "Verificando pagamento..."}
+                                            className="w-full bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white py-2.5 rounded-xl font-bold text-xs transition-all border border-white/10 flex items-center justify-center gap-1.5"
+                                        >
+                                            <span className="material-symbols-outlined text-[16px]">sync</span>
+                                            Já Paguei? Verificar Assinatura
                                         </button>
                                     </div>
                                 </div>
