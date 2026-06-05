@@ -135,61 +135,120 @@ function LandingPage() {
                         </div>
                     </div>
 
-                    {/* Right Interactive Mockup */}
-                    <div className="lg:col-span-5 flex justify-center w-full">
-                        <div className="relative w-full max-w-[280px] bg-slate-900 rounded-[40px] p-3 shadow-2xl border-4 border-slate-700 dark:border-slate-800 ring-4 ring-primary/20 aspect-[9/19] flex flex-col overflow-hidden animate-float">
-                            {/* Phone Speaker/Camera notch */}
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-b-2xl z-20 flex justify-center items-center">
-                                <div className="w-12 h-1 bg-slate-800 rounded-full mb-1"></div>
+                    {/* Right Interactive Multi-Device Mockup */}
+                    <div className="lg:col-span-5 flex justify-center w-full pt-6 lg:pt-0">
+                        <div className="relative w-full max-w-[340px] sm:max-w-[440px] h-[260px] sm:h-[340px] overflow-visible select-none">
+                            
+                            {/* 1. MONITOR MOCKUP (Desktop - Background Center) */}
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[85%] aspect-[16/10] bg-slate-950 rounded-xl p-1 sm:p-1.5 shadow-2xl border border-slate-800 z-0 flex flex-col">
+                                {/* Browser Bar */}
+                                <div className="flex items-center gap-1 pb-1 border-b border-slate-800 text-[6px] sm:text-[8px] text-slate-500">
+                                    <div className="flex gap-0.5">
+                                        <span className="size-1 sm:size-1.5 rounded-full bg-rose-500/80"></span>
+                                        <span className="size-1 sm:size-1.5 rounded-full bg-amber-500/80"></span>
+                                        <span className="size-1 sm:size-1.5 rounded-full bg-emerald-500/80"></span>
+                                    </div>
+                                    <div className="flex-1 bg-slate-900/60 rounded px-1.5 py-0.2 mx-2 text-center text-[5px] sm:text-[7px] font-mono truncate">cifras.app/song/edit</div>
+                                </div>
+                                {/* Editor Workspace */}
+                                <div className="flex-1 bg-slate-900 text-slate-300 p-1.5 sm:p-2.5 rounded-b-lg flex flex-col text-[6px] sm:text-[8px] leading-tight text-left">
+                                    <div className="flex items-center justify-between border-b border-slate-800 pb-1 mb-1 sm:mb-2">
+                                        <span className="font-extrabold text-white flex items-center gap-0.5"><span className="material-symbols-outlined text-[8px] sm:text-[10px]">edit</span> Editar Música</span>
+                                        <span className="px-1 py-0.2 bg-primary/20 text-primary font-bold rounded">Salvo</span>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-1 mb-1 sm:mb-2">
+                                        <div>
+                                            <span className="text-[5px] sm:text-[7px] text-slate-500 font-bold block mb-0.2">Título</span>
+                                            <div className="bg-slate-950 p-0.5 rounded font-bold text-white truncate border border-slate-800">Garota de Ipanema</div>
+                                        </div>
+                                        <div>
+                                            <span className="text-[5px] sm:text-[7px] text-slate-500 font-bold block mb-0.2">Artista</span>
+                                            <div className="bg-slate-950 p-0.5 rounded font-semibold truncate border border-slate-800">Tom Jobim</div>
+                                        </div>
+                                        <div>
+                                            <span className="text-[5px] sm:text-[7px] text-slate-500 font-bold block mb-0.2">Tom</span>
+                                            <div className="bg-slate-950 p-0.5 rounded font-bold text-primary truncate border border-slate-800">G (Sol Maior)</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 bg-slate-950 p-1 sm:p-1.5 rounded border border-slate-800 font-mono text-slate-400 overflow-hidden leading-normal text-[5px] sm:text-[7px]">
+                                        <p className="text-primary font-bold">[Gmaj7]</p>
+                                        <p>Olha que coisa mais linda, mais cheia de graça</p>
+                                        <p className="text-primary font-bold">[A9]</p>
+                                        <p>É ela, menina, que vem e que passa</p>
+                                        <p className="text-primary font-bold">[Am7]                       [D7/9-]</p>
+                                        <p>Num doce balanço a caminho do mar</p>
+                                    </div>
+                                </div>
+                                {/* Monitor Stand */}
+                                <div className="absolute bottom-[-10px] sm:bottom-[-13px] left-1/2 -translate-x-1/2 w-10 sm:w-14 h-2.5 sm:h-3.5 bg-slate-800 rounded-t"></div>
+                                <div className="absolute bottom-[-12px] sm:bottom-[-16px] left-1/2 -translate-x-1/2 w-14 sm:w-20 h-0.5 sm:h-1 bg-slate-700 rounded-full"></div>
                             </div>
 
-                            {/* App Screen inside phone */}
-                            <div className="bg-[#f8fafc] text-slate-900 flex-1 rounded-[32px] overflow-hidden flex flex-col p-4 pt-8 text-left relative select-none">
-                                {/* Header */}
-                                <div className="flex justify-between items-center border-b border-slate-200/60 pb-2 mb-3">
-                                    <div>
-                                        <h4 className="text-[10px] uppercase font-black tracking-widest text-slate-400">Tocando Agora</h4>
-                                        <h3 className="font-extrabold text-sm text-slate-800 truncate max-w-[130px]">Wonderwall</h3>
-                                        <p className="text-[10px] text-slate-500 font-bold leading-none">Oasis</p>
+                            {/* 2. TABLET MOCKUP (Overlapping Bottom-Left) */}
+                            <div className="absolute bottom-1.5 left-[-15px] sm:left-[-25px] w-[50%] aspect-[3/4] bg-slate-950 rounded-xl p-1 shadow-2xl border border-slate-800 z-10 flex flex-col">
+                                {/* Tablet Screen */}
+                                <div className="bg-[#f8fafc] text-slate-900 flex-1 rounded-[10px] overflow-hidden flex flex-col p-1.5 sm:p-2.5 text-left relative">
+                                    <div className="flex justify-between items-center border-b border-slate-200 pb-1 mb-1 sm:mb-2 text-[6px] sm:text-[8px]">
+                                        <div>
+                                            <h4 className="font-extrabold text-slate-800 truncate">Garota de Ipanema</h4>
+                                            <p className="text-[5px] sm:text-[7px] text-slate-500 font-bold">Tom Jobim • Tom: G</p>
+                                        </div>
+                                        <span className="material-symbols-outlined text-[10px] sm:text-[14px] text-slate-400">arrow_downward</span>
                                     </div>
-                                    <div className="px-2 py-0.5 bg-primary/10 rounded-full text-[9px] font-black text-primary">Tom: Em</div>
-                                </div>
-
-                                {/* Chords lyrics mockup */}
-                                <div className="flex-1 text-[11px] font-medium leading-relaxed text-slate-600 space-y-3 pt-2">
-                                    <div>
-                                        <span className="text-primary font-bold mr-1 block text-xs">[Em7]</span>
-                                        Today is gonna be the day
+                                    <div className="flex-1 text-[5px] sm:text-[7px] leading-relaxed text-slate-600 space-y-1">
+                                        <div className="text-slate-400 font-bold font-mono py-0.2 px-0.5 bg-slate-100 rounded inline-block text-[4px] sm:text-[6px]">P{'{12}'} (Introdução)</div>
+                                        <div>
+                                            <span className="text-primary font-bold mr-0.5 text-[5px] sm:text-[7px]">[Gmaj7]</span>
+                                            Olha que coisa mais linda, mais cheia de graça
+                                        </div>
+                                        <div>
+                                            É ela, menina, que vem e que passa
+                                        </div>
+                                        <div>
+                                            <span className="text-primary font-bold mr-0.5 text-[5px] sm:text-[7px]">[A9]</span>
+                                            Num doce balanço a caminho do mar
+                                        </div>
                                     </div>
-                                    <div>
-                                        That they're gonna throw it <span className="text-primary font-bold">[G]</span> back to you
+                                    {/* Scrolling active banner */}
+                                    <div className="bg-primary/95 text-white py-0.5 px-1.5 rounded shadow text-[4px] sm:text-[6px] font-bold flex items-center justify-between animate-pulse">
+                                        <span className="flex items-center gap-0.5"><span className="material-symbols-outlined text-[6px] sm:text-[8px]">schedule</span> Pausa Ativa: 12s</span>
+                                        <span>Introdução</span>
                                     </div>
-                                    <div>
-                                        <span className="text-primary font-bold mr-1 block text-xs">[Dsus4]</span>
-                                        By now you should've somehow
-                                    </div>
-                                    <div>
-                                        Realized what you're <span className="text-primary font-bold">[A7sus4]</span> gonna do
-                                    </div>
-                                </div>
-
-                                {/* Mock Auto Scroll active indicator */}
-                                <div className="absolute bottom-20 left-4 right-4 bg-primary/95 text-white py-1.5 px-3 rounded-xl shadow-lg flex items-center justify-between text-[10px] font-bold animate-pulse">
-                                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-xs">arrow_downward</span> Rolagem Ativa</span>
-                                    <span>Vel: 1.5x</span>
-                                </div>
-
-                                {/* Bottom Player Controls */}
-                                <div className="border-t border-slate-200/60 pt-2 flex items-center justify-around text-slate-500">
-                                    <span className="material-symbols-outlined text-[18px]">exposure</span>
-                                    <span className="material-symbols-outlined text-[18px]">tune</span>
-                                    <div className="size-8 rounded-full bg-primary flex items-center justify-center text-white shadow-md shadow-primary/20">
-                                        <span className="material-symbols-outlined text-[16px]">play_arrow</span>
-                                    </div>
-                                    <span className="material-symbols-outlined text-[18px]">av_timer</span>
-                                    <span className="material-symbols-outlined text-[18px]">lock</span>
                                 </div>
                             </div>
+
+                            {/* 3. SMARTPHONE MOCKUP (Overlapping Bottom-Right) */}
+                            <div className="absolute bottom-0 right-[-15px] sm:right-[-25px] w-[30%] aspect-[9/19] bg-slate-950 rounded-xl p-0.5 shadow-2xl border border-slate-800 z-20 flex flex-col overflow-hidden">
+                                {/* Screen Content: Tuner */}
+                                <div className="bg-slate-900 text-white flex-1 rounded-[10px] overflow-hidden flex flex-col p-1 sm:p-2 text-[5px] sm:text-[7px] text-left relative">
+                                    <div className="text-center font-bold text-[6px] sm:text-[8px] text-slate-400 border-b border-slate-800 pb-0.5 mb-1 sm:mb-2">Afinador</div>
+                                    
+                                    {/* Tuner dial display */}
+                                    <div className="flex flex-col items-center flex-1 justify-center relative py-1 sm:py-2">
+                                        {/* Simple Dial Arc */}
+                                        <svg viewBox="0 0 100 60" className="w-full max-w-[50px] sm:max-w-[70px] overflow-visible">
+                                            <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
+                                            {/* Green center tick */}
+                                            <line x1="50" y1="10" x2="50" y2="16" stroke="#10b981" strokeWidth="1.5" />
+                                            {/* Needle aligned exactly at 0 degree (perfectly tuned) */}
+                                            <line x1="50" y1="50" x2="50" y2="12" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />
+                                            <circle cx="50" cy="50" r="3" fill="#cbd5e1" />
+                                        </svg>
+                                        <span className="text-sm sm:text-base font-black text-emerald-500 leading-none mt-1 sm:mt-1.5 block">Lá</span>
+                                        <span className="text-[4px] sm:text-[6px] font-mono text-slate-400 block mt-0.2">110.0 Hz</span>
+                                        <span className="px-1 py-0.2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full font-bold text-[3.5px] sm:text-[5.5px] uppercase tracking-wider mt-1 block">Afinado!</span>
+                                    </div>
+                                    <div className="grid grid-cols-6 gap-0.5 font-bold text-center mt-1 pt-1 border-t border-slate-800 text-[4px] sm:text-[6px]">
+                                        <span className="bg-slate-800 text-slate-400 rounded py-0.2">1E</span>
+                                        <span className="bg-slate-800 text-slate-400 rounded py-0.2">2B</span>
+                                        <span className="bg-slate-800 text-slate-400 rounded py-0.2">3G</span>
+                                        <span className="bg-slate-800 text-slate-400 rounded py-0.2">4D</span>
+                                        <span className="bg-emerald-500 text-white rounded py-0.2 scale-105">5A</span>
+                                        <span className="bg-slate-800 text-slate-400 rounded py-0.2">6E</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
                         </div>
                     </div>
                 </div>
