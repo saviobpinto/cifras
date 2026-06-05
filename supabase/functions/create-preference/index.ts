@@ -29,7 +29,7 @@ serve(async (req) => {
       body: JSON.stringify({
         items: [
           {
-            title: "Acesso Premium Vitalício - My Setlist",
+            title: "Acesso Premium Vitalício - Meu Setlist",
             quantity: 1,
             unit_price: 29.90, // Valor único de R$ 29,90
             currency_id: "BRL"

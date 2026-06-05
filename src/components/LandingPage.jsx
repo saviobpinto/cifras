@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
@@ -6,7 +6,27 @@ import { useAuth } from '../contexts/AuthContext';
 function LandingPage() {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const { session } = useAuth();
+    const { session, loading } = useAuth();
+
+    // Redirect registered/logged in users immediately to dashboard or login
+    useEffect(() => {
+        if (!loading) {
+            if (session) {
+                navigate('/dashboard', { replace: true });
+            } else if (localStorage.getItem('cifras-registered') === 'true') {
+                navigate('/login', { replace: true });
+            }
+        }
+    }, [session, loading, navigate]);
+
+    // Render loading state while checking session/redirecting
+    if (loading || session || localStorage.getItem('cifras-registered') === 'true') {
+        return (
+            <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
     
     // FAQ accordion state
     const [openFaqIndex, setOpenFaqIndex] = useState(null);

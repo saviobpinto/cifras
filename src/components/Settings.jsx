@@ -12,7 +12,7 @@ function Settings() {
     const navigate = useNavigate();
     const { songs, theme, toggleTheme, importSongs, clearAllSongs, keepAwake, toggleKeepAwake, exportSetlists, importData, setlists, syncProgress, manualSync } = useSongs();
     const { t, i18n } = useTranslation();
-    const { user, isPremium, togglePremiumMock } = useAuth();
+    const { user, isPremium } = useAuth();
     const isDark = theme === 'dark';
 
     const changeLanguage = (lng) => {
@@ -172,14 +172,6 @@ function Settings() {
                                             className="w-full bg-primary hover:bg-primary-light disabled:opacity-75 text-white py-3 rounded-xl font-bold text-sm transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-1.5"
                                         >
                                             Assinar por R$ 29,90 (pagamento único)
-                                        </button>
-
-                                        {/* Botão de teste rápido */}
-                                        <button
-                                            onClick={togglePremiumMock}
-                                            className="w-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 py-2.5 rounded-xl font-bold text-xs transition-all border border-amber-500/20"
-                                        >
-                                            Simular Ativação Premium (Testes)
                                         </button>
                                     </div>
                                 </div>

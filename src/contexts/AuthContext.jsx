@@ -80,6 +80,7 @@ export const AuthProvider = ({ children }) => {
       setUser(session?.user ?? null);
       if (session) {
           disableOfflineMode(); // If they log in, exit offline mode
+          localStorage.setItem('cifras-registered', 'true');
           fetchProfile(session.user);
       } else {
           setLoading(false);
@@ -95,6 +96,7 @@ export const AuthProvider = ({ children }) => {
       setUser(session?.user ?? null);
       if (session) {
           disableOfflineMode();
+          localStorage.setItem('cifras-registered', 'true');
           fetchProfile(session.user);
       } else {
           setIsPremium(localStorage.getItem('cifras-app-premium-mock') === 'true');
