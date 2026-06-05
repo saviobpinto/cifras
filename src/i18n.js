@@ -208,7 +208,7 @@ const resources = {
                     "library": "Biblioteca",
                     "tuner": "Afinador",
                     "metronome": "Metrônomo",
-                    "settings": "Configurações"
+                    "settings": "Ajustes"
                 }
             },
             "editor": {

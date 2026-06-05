@@ -415,7 +415,7 @@ function Tuner() {
                 </div>
             </header>
 
-            <main className="flex-1 max-w-md mx-auto w-full px-4 pt-4 pb-12 flex flex-col gap-6 overflow-y-auto">
+            <main className="flex-1 max-w-md mx-auto w-full px-4 pt-3 pb-8 flex flex-col gap-3.5 overflow-y-auto">
                 {/* Instrument Selector */}
                 <section className="bg-white dark:bg-surface-dark p-3 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-sm flex items-center justify-around">
                     {INSTRUMENTS.map((inst) => {
@@ -424,24 +424,24 @@ function Tuner() {
                             <button
                                 key={inst.id}
                                 onClick={() => handleInstrumentChange(inst)}
-                                className={`flex flex-col items-center gap-1.5 py-2 px-3 rounded-xl transition-all ${
+                                className={`flex flex-col items-center gap-1 py-1.5 px-2 rounded-xl transition-all ${
                                     isSelected 
                                         ? 'bg-primary text-white shadow-md shadow-primary/20 scale-105' 
                                         : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50'
                                 }`}
                             >
-                                <span className="material-symbols-outlined text-xl">{inst.icon}</span>
-                                <span className="text-[11px] font-bold tracking-wide">{t(inst.nameKey)}</span>
+                                <span className="material-symbols-outlined text-[18px]">{inst.icon}</span>
+                                <span className="text-[10px] font-bold tracking-wide">{t(inst.nameKey)}</span>
                             </button>
                         );
                     })}
                 </section>
 
                 {/* Tuner Gauge Card */}
-                <section className={`bg-white dark:bg-surface-dark rounded-3xl p-6 border border-slate-200 dark:border-slate-800/80 shadow-sm relative overflow-hidden transition-all duration-300 ${ringColor} ${glowColor}`}>
+                <section className={`bg-white dark:bg-surface-dark rounded-3xl p-4 pb-3 border border-slate-200 dark:border-slate-800/80 shadow-sm relative overflow-hidden transition-all duration-300 ${ringColor} ${glowColor}`}>
                     
                     {/* Mode selector */}
-                    <div className="flex justify-center mb-6">
+                    <div className="flex justify-center mb-3">
                         <div className="bg-slate-100 dark:bg-slate-800 rounded-xl p-1 flex">
                             <button
                                 onClick={() => {
@@ -472,8 +472,8 @@ function Tuner() {
                     </div>
 
                     {/* SVG Tuner Gauge Dial */}
-                    <div className="relative flex justify-center items-center h-[130px] w-full mt-2 overflow-visible">
-                        <svg viewBox="0 0 200 120" className="w-full max-w-[240px] overflow-visible">
+                    <div className="relative flex justify-center items-center h-[95px] w-full mt-0 overflow-visible">
+                        <svg viewBox="0 0 200 120" className="w-full max-w-[170px] overflow-visible">
                             {/* Gauge Arc background */}
                             <path 
                                 d="M 20 100 A 80 80 0 0 1 180 100" 
@@ -509,8 +509,8 @@ function Tuner() {
                         </svg>
 
                         {/* Note Display (Center Overlay) */}
-                        <div className="absolute bottom-2 flex flex-col items-center justify-center">
-                            <span className={`text-5xl font-black tracking-tight transition-colors duration-300 ${textColor}`}>
+                        <div className="absolute bottom-1 flex flex-col items-center justify-center">
+                            <span className={`text-4xl font-black tracking-tight transition-colors duration-300 ${textColor}`}>
                                 {detectedNote}
                             </span>
                             {isActive && detectedNote !== '-' && (
@@ -522,7 +522,7 @@ function Tuner() {
                     </div>
 
                     {/* Tuning offset text readout */}
-                    <div className="text-center h-6 mt-4 flex items-center justify-center">
+                    <div className="text-center h-5 mt-2 flex items-center justify-center">
                         {isActive && detectedNote !== '-' ? (
                             <div className="flex items-center gap-1.5">
                                 {isInTune && (
@@ -541,7 +541,7 @@ function Tuner() {
                 </section>
 
                 {/* Instrument Strings Panel */}
-                <section className="bg-white dark:bg-surface-dark rounded-3xl p-5 border border-slate-200 dark:border-slate-800/80 shadow-sm flex flex-col gap-4">
+                <section className="bg-white dark:bg-surface-dark rounded-3xl p-3.5 border border-slate-200 dark:border-slate-800/80 shadow-sm flex flex-col gap-3">
                     <div className="flex justify-between items-center px-1">
                         <h3 className="text-xs font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
                             Cordas / Notas
@@ -579,16 +579,16 @@ function Tuner() {
                                         setIsAutoMode(false); // Switch to manual on click
                                         stopTone();
                                     }}
-                                    className={`h-16 flex flex-col items-center justify-center rounded-2xl border font-bold transition-all relative ${btnClass}`}
+                                    className={`h-11 flex flex-col items-center justify-center rounded-xl border font-bold transition-all relative ${btnClass}`}
                                 >
-                                    <span className="text-xs text-slate-400 dark:text-slate-500 font-medium leading-none mb-1">
+                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium leading-none mb-0.5">
                                         {str.label}
                                     </span>
-                                    <span className="text-lg leading-none">
+                                    <span className="text-sm leading-none">
                                         {isPt ? getPtNoteName(str.note) : str.note}
                                     </span>
                                     {isStringSelected && isAutoMode && (
-                                        <div className={`absolute bottom-1.5 w-1.5 h-1.5 rounded-full ${isInTune ? 'bg-emerald-500' : 'bg-primary animate-ping'}`}></div>
+                                        <div className={`absolute bottom-1 w-1 h-1 rounded-full ${isInTune ? 'bg-emerald-500' : 'bg-primary animate-ping'}`}></div>
                                     )}
                                 </button>
                             );
@@ -626,10 +626,10 @@ function Tuner() {
                 </section>
 
                 {/* Primary Mic Activation Button */}
-                <section className="mt-2 flex flex-col gap-3">
+                <section className="mt-0 flex flex-col gap-3">
                     <button
                         onClick={toggleTuner}
-                        className={`w-full py-4 rounded-2xl font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2 shadow-lg ${
+                        className={`w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2 shadow-lg ${
                             isActive
                                 ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/15 active:scale-[0.98]'
                                 : 'bg-primary hover:bg-primary-dark text-white shadow-primary/15 active:scale-[0.98]'
