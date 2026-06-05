@@ -5,6 +5,7 @@ import { cn } from '../lib/utils';
 import { parseChordPro, transposeNote } from '../lib/music';
 import { useSongs } from '../contexts/SongContext';
 import ChordTooltip from './ChordTooltip';
+import { useAuth } from '../contexts/AuthContext';
 
 function SongViewer() {
     const navigate = useNavigate();
@@ -14,6 +15,7 @@ function SongViewer() {
     const setlistId = searchParams.get('setlistId');
     const { getSong, updateSong, currentSong, setlists, songs, addToSetlist } = useSongs();
     const { t } = useTranslation();
+    const { isPremium } = useAuth();
 
     const [viewerSongs, setViewerSongs] = useState([]);
     const [activeSongIndex, setActiveSongIndex] = useState(0);
@@ -344,7 +346,13 @@ function SongViewer() {
                         )}
                     </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
+                    {!isPremium && (
+                        <button onClick={() => navigate('/settings')} className="mr-1 flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all active:scale-95 shadow-sm shadow-amber-500/20">
+                            <span className="material-symbols-outlined text-[12px] font-bold fill-1">workspace_premium</span>
+                            Premium
+                        </button>
+                    )}
                     <Link to={`/song/edit/${activeSong.id}${setlistId ? `?setlistId=${setlistId}` : ''}`} className="flex items-center justify-center size-10 rounded-full hover:bg-white/10 text-slate-400 hover:text-white transition-colors">
                         <span className="material-symbols-outlined text-[20px]">edit</span>
                     </Link>

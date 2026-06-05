@@ -422,6 +422,48 @@ function Settings() {
                         </div>
                     </section>
 
+                    {/* Guia PWA */}
+                    <section>
+                        <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-2">Instalação e Ajuda</h3>
+                        <div className="bg-surface-light dark:bg-surface-dark rounded-xl p-5 border border-slate-200 dark:border-slate-700/50 shadow-sm space-y-4 text-left">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                                    <span className="material-symbols-outlined text-xl">install_mobile</span>
+                                </div>
+                                <span className="font-bold text-base text-slate-900 dark:text-white">Como usar como App Nativo (PWA)</span>
+                            </div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                                Você pode adicionar o **Meu Setlist** diretamente na tela de início do seu celular. Ele funcionará como um aplicativo nativo (tela cheia e sem barras do navegador), ideal para acessar suas cifras offline durante as apresentações.
+                            </p>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-200/50 dark:border-slate-800">
+                                <div className="space-y-2">
+                                    <h4 className="text-xs font-extrabold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-[16px] text-indigo-500">phone_iphone</span> iPhone / Safari
+                                    </h4>
+                                    <ul className="list-decimal list-inside text-[11px] text-slate-600 dark:text-slate-400 space-y-1.5 font-semibold">
+                                        <li>Abra o app no navegador Safari.</li>
+                                        <li>Toque em **Compartilhar** (ícone <span className="material-symbols-outlined text-[14px] align-middle">share</span>).</li>
+                                        <li>Selecione **"Adicionar à Tela de Início"**.</li>
+                                        <li>Confirme clicando em **"Adicionar"**.</li>
+                                    </ul>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <h4 className="text-xs font-extrabold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-[16px] text-emerald-500">phone_android</span> Android / Chrome
+                                    </h4>
+                                    <ul className="list-decimal list-inside text-[11px] text-slate-600 dark:text-slate-400 space-y-1.5 font-semibold">
+                                        <li>Abra o app no navegador Chrome.</li>
+                                        <li>Toque no menu de **3 pontinhos** (canto superior direito).</li>
+                                        <li>Selecione **"Instalar aplicativo"** ou **"Adicionar à tela..."**.</li>
+                                        <li>Confirme a instalação na tela seguinte.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
                     {/* Account Settings Group */}
                     <section>
                         <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 ml-2">{t('settings.account')}</h3>

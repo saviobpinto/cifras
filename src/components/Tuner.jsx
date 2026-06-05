@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
 
 // Instrument configurations
 const INSTRUMENTS = [
@@ -59,6 +60,7 @@ const NOTE_NAMES_PT = ['Dó', 'Dó#', 'Ré', 'Ré#', 'Mi', 'Fá', 'Fá#', 'Sol',
 function Tuner() {
     const navigate = useNavigate();
     const { t, i18n } = useTranslation();
+    const { isPremium } = useAuth();
     const isPt = i18n.language.startsWith('pt');
     const noteNames = isPt ? NOTE_NAMES_PT : NOTE_NAMES_EN;
 
@@ -406,12 +408,19 @@ function Tuner() {
             {/* Header */}
             <header className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
                 <div className="px-4 h-14 flex items-center justify-between">
-                    <button onClick={() => navigate('/dashboard')} className="flex items-center text-primary active:opacity-70 transition-opacity">
+                    <button onClick={() => navigate('/dashboard')} className="flex items-center text-primary active:opacity-70 transition-opacity w-[90px]">
                         <span className="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
                         <span className="ml-1 text-base font-medium">{t('settings.home')}</span>
                     </button>
                     <h1 className="text-lg font-bold leading-tight">{t('tuner.title')}</h1>
-                    <div className="w-14"></div> {/* Balance spacing */}
+                    <div className="flex items-center justify-end w-[90px]">
+                        {!isPremium && (
+                            <button onClick={() => navigate('/settings')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all active:scale-95 shadow-sm shadow-amber-500/20">
+                                <span className="material-symbols-outlined text-[12px] font-bold fill-1">workspace_premium</span>
+                                Premium
+                            </button>
+                        )}
+                    </div>
                 </div>
             </header>
 

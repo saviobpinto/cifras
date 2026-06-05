@@ -2,10 +2,12 @@ import React, { useState, useEffect, useDeferredValue, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useSongs } from '../contexts/SongContext';
+import { useAuth } from '../contexts/AuthContext';
 
 function Library() {
     const navigate = useNavigate();
     const { songs } = useSongs();
+    const { isPremium } = useAuth();
     const [searchQuery, setSearchQuery] = useState(() => {
         return sessionStorage.getItem('library-search') || '';
     });
@@ -70,9 +72,17 @@ function Library() {
                     <h1 className="text-xl font-bold">{t('library.title')}</h1>
                     <p className="text-xs text-slate-500">{t('library.songsCount', { count: songs.length })}</p>
                 </div>
-                <Link to="/song/new" className="flex items-center justify-center size-10 rounded-full bg-primary hover:bg-primary-dark text-white transition-colors shadow-lg shadow-primary/30">
-                    <span className="material-symbols-outlined">add</span>
-                </Link>
+                <div className="flex items-center gap-2">
+                    {!isPremium && (
+                        <button onClick={() => navigate('/settings')} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all active:scale-95 shadow-sm shadow-amber-500/20">
+                            <span className="material-symbols-outlined text-[12px] font-bold fill-1">workspace_premium</span>
+                            Premium
+                        </button>
+                    )}
+                    <Link to="/song/new" className="flex items-center justify-center size-10 rounded-full bg-primary hover:bg-primary-dark text-white transition-colors shadow-lg shadow-primary/30">
+                        <span className="material-symbols-outlined">add</span>
+                    </Link>
+                </div>
             </header>
 
             {/* Search Bar */}

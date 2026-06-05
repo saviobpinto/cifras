@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -44,8 +44,9 @@ const calculateSetlistDuration = (setlist, allSongs) => {
 function Dashboard() {
     const { t } = useTranslation();
     const { songs, setlists, setCurrentSong, addSetlist, deleteSetlist, reorderSetlists } = useSongs();
-    const { user, isOfflineMode } = useAuth();
+    const { user, isOfflineMode, isPremium } = useAuth();
     const navigate = useNavigate();
+    const [showHelpModal, setShowHelpModal] = useState(false);
 
     const handleDragEnd = (result) => {
         if (!result.destination) return;
@@ -104,9 +105,18 @@ function Dashboard() {
                                 <h2 className="text-lg font-bold leading-none text-slate-900 dark:text-white">{displayName}</h2>
                             </div>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
+                            {!isPremium && (
+                                <button onClick={() => navigate('/settings')} className="mr-1 flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 hover:bg-amber-600 text-slate-950 transition-all active:scale-95 shadow-sm shadow-amber-500/20">
+                                    <span className="material-symbols-outlined text-[12px] font-bold fill-1">workspace_premium</span>
+                                    Premium
+                                </button>
+                            )}
                             <button onClick={() => navigate('/library')} className="flex items-center justify-center size-10 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300">
                                 <span className="material-symbols-outlined">search</span>
+                            </button>
+                            <button onClick={() => setShowHelpModal(true)} className="flex items-center justify-center size-10 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300">
+                                <span className="material-symbols-outlined">help</span>
                             </button>
                         </div>
                     </div>
@@ -240,6 +250,63 @@ function Dashboard() {
                         </NavLink>
                     </div>
                 </nav>
+                {/* Help PWA Modal */}
+                {showHelpModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-white dark:bg-surface-dark rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-200 text-left border border-slate-200 dark:border-slate-800">
+                            <div className="p-5 border-b border-slate-100 dark:border-slate-800/60 flex items-center justify-between">
+                                <h3 className="font-extrabold text-lg flex items-center gap-2 text-slate-900 dark:text-white">
+                                    <span className="material-symbols-outlined text-primary">install_mobile</span>
+                                    Usar como App Nativo
+                                </h3>
+                                <button onClick={() => setShowHelpModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center">
+                                    <span className="material-symbols-outlined">close</span>
+                                </button>
+                            </div>
+                            
+                            <div className="p-5 space-y-5 text-sm overflow-y-auto max-h-[70vh]">
+                                <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                                    O **Meu Setlist** é um Progressive Web App (PWA). Você pode instalá-lo no celular sem precisar de lojas de aplicativos. Ele funcionará offline e com tela cheia.
+                                </p>
+
+                                <div className="space-y-3">
+                                    <h4 className="font-extrabold text-slate-800 dark:text-white flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-[18px] text-indigo-500">phone_iphone</span>
+                                        No iPhone & iPad (Safari)
+                                    </h4>
+                                    <ol className="list-decimal list-inside space-y-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                        <li>Abra o site no navegador **Safari**.</li>
+                                        <li>Toque no botão de **Compartilhar** <span className="material-symbols-outlined text-[14px] align-middle">share</span> (quadrado com seta para cima).</li>
+                                        <li>Role para baixo e selecione **"Adicionar à Tela de Início"** <span className="material-symbols-outlined text-[14px] align-middle">add_box</span>.</li>
+                                        <li>Toque em **"Adicionar"** no canto superior direito.</li>
+                                    </ol>
+                                </div>
+
+                                <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800/60">
+                                    <h4 className="font-extrabold text-slate-800 dark:text-white flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-[18px] text-emerald-500">phone_android</span>
+                                        No Android (Chrome)
+                                    </h4>
+                                    <ol className="list-decimal list-inside space-y-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                        <li>Abra o site no navegador **Chrome**.</li>
+                                        <li>Toque nos **três pontinhos** <span className="material-symbols-outlined text-[14px] align-middle">more_vert</span> no canto superior direito.</li>
+                                        <li>Toque em **"Instalar aplicativo"** ou **"Adicionar à tela inicial"** <span className="material-symbols-outlined text-[14px] align-middle">install_mobile</span>.</li>
+                                        <li>Confirme a instalação na tela seguinte.</li>
+                                    </ol>
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-slate-50 dark:bg-black/20 text-right border-t border-slate-100 dark:border-slate-800/60">
+                                <button 
+                                    onClick={() => setShowHelpModal(false)} 
+                                    className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-xs font-extrabold shadow"
+                                >
+                                    Entendi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
