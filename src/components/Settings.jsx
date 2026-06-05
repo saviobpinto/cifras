@@ -25,6 +25,11 @@ function Settings() {
             });
             if (error) throw error;
             if (data && data.isPremium) {
+                // Refresh local session and set local storage fallback flags
+                await supabase.auth.refreshSession();
+                localStorage.setItem('cifras-app-premium-mock', 'true');
+                localStorage.setItem('cifras-app-premium-supabase', 'true');
+                
                 if (showFeedback) {
                     alert("Assinatura Premium ativada com sucesso! Obrigado pelo apoio.");
                 }
