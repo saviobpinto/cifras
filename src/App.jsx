@@ -6,6 +6,8 @@ import SongViewer from './components/SongViewer';
 import SetlistDetail from './components/SetlistDetail';
 import Library from './components/Library';
 import Settings from './components/Settings';
+import Tuner from './components/Tuner';
+import Metronome from './components/Metronome';
 import { SongProvider } from './contexts/SongContext';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -26,6 +28,8 @@ function App() {
             <Route path="/song/viewer" element={<ProtectedRoute><SongViewer /></ProtectedRoute>} />
             <Route path="/setlist/:id" element={<ProtectedRoute><SetlistDetail /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/tuner" element={<ProtectedRoute><Tuner /></ProtectedRoute>} />
+            <Route path="/metronome" element={<ProtectedRoute><Metronome /></ProtectedRoute>} />
 
             {/* Redirect root to dashboard */}
             <Route path="/" element={<Navigate to="/dashboard" replace />} />

@@ -72,6 +72,8 @@ const resources = {
                 "nav": {
                     "dashboard": "Dashboard",
                     "library": "Library",
+                    "tuner": "Tuner",
+                    "metronome": "Metronome",
                     "settings": "Settings"
                 }
             },
@@ -103,6 +105,36 @@ const resources = {
                 "startBuilding": "Start building your repertoire by adding your first song.",
                 "addSong": "Add Song",
                 "noMatches": "No matches found for \"{{query}}\""
+            },
+            "tuner": {
+                "title": "Instrument Tuner",
+                "start": "Start Tuner",
+                "stop": "Stop Tuner",
+                "allowMic": "Please allow microphone access to use the tuner.",
+                "micPermissionError": "Microphone permission denied. Please check your browser settings.",
+                "autoMode": "Auto",
+                "manualMode": "Manual",
+                "playTone": "Play Tone",
+                "stopTone": "Stop Tone",
+                "instrument": "Instrument",
+                "guitar": "Guitar",
+                "ukulele": "Ukulele",
+                "bass": "Bass (4 Str)",
+                "violin": "Violin",
+                "inTune": "In Tune!",
+                "flat": "Flat",
+                "sharp": "Sharp"
+            },
+            "metronome": {
+                "title": "Metronome",
+                "start": "Start",
+                "stop": "Stop",
+                "bpm": "BPM",
+                "tempo": "Tempo",
+                "timeSignature": "Time Signature",
+                "mute": "Mute",
+                "sound": "Sound",
+                "tapTempo": "Tap Tempo"
             }
         }
     },
@@ -174,6 +206,8 @@ const resources = {
                 "nav": {
                     "dashboard": "Início",
                     "library": "Biblioteca",
+                    "tuner": "Afinador",
+                    "metronome": "Metrônomo",
                     "settings": "Configurações"
                 }
             },
@@ -205,6 +239,36 @@ const resources = {
                 "startBuilding": "Comece a construir seu repertório adicionando sua primeira música.",
                 "addSong": "Nova Música",
                 "noMatches": "Nenhum resultado para \"{{query}}\""
+            },
+            "tuner": {
+                "title": "Afinador de Instrumentos",
+                "start": "Iniciar Afinador",
+                "stop": "Parar Afinador",
+                "allowMic": "Por favor, permita o acesso ao microfone para usar o afinador.",
+                "micPermissionError": "Acesso ao microfone negado. Verifique as configurações do navegador.",
+                "autoMode": "Automático",
+                "manualMode": "Manual",
+                "playTone": "Ouvir Tom",
+                "stopTone": "Parar Tom",
+                "instrument": "Instrumento",
+                "guitar": "Violão",
+                "ukulele": "Ukulele",
+                "bass": "Baixo (4 Cordas)",
+                "violin": "Violino",
+                "inTune": "Afinado!",
+                "flat": "Abaixo",
+                "sharp": "Acima"
+            },
+            "metronome": {
+                "title": "Metrônomo",
+                "start": "Iniciar",
+                "stop": "Parar",
+                "bpm": "BPM",
+                "tempo": "Tempo",
+                "timeSignature": "Compasso",
+                "mute": "Silenciar",
+                "sound": "Som",
+                "tapTempo": "Tap Tempo"
             }
         }
     }

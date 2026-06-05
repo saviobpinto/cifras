@@ -226,6 +226,14 @@ function Dashboard() {
                             <span className="material-symbols-outlined text-[28px]">library_music</span>
                             <span className="text-[10px] font-medium tracking-wide">{t('dashboard.nav.library')}</span>
                         </NavLink>
+                        <NavLink to="/tuner" className="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                            <span className="material-symbols-outlined text-[28px]">tune</span>
+                            <span className="text-[10px] font-medium tracking-wide">{t('dashboard.nav.tuner')}</span>
+                        </NavLink>
+                        <NavLink to="/metronome" className="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
+                            <span className="material-symbols-outlined text-[28px]">av_timer</span>
+                            <span className="text-[10px] font-medium tracking-wide">{t('dashboard.nav.metronome')}</span>
+                        </NavLink>
                         <NavLink to="/settings" className="flex flex-1 flex-col items-center justify-end gap-1 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors">
                             <span className="material-symbols-outlined text-[28px]">settings</span>
                             <span className="text-[10px] font-medium tracking-wide">{t('dashboard.nav.settings')}</span>
