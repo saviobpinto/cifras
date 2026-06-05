@@ -135,120 +135,161 @@ function LandingPage() {
                         </div>
                     </div>
 
-                    {/* Right Interactive Multi-Device Mockup */}
+                    {/* Right Interactive Smartphone Mockup */}
                     <div className="lg:col-span-5 flex justify-center w-full pt-6 lg:pt-0">
-                        <div className="relative w-full max-w-[340px] sm:max-w-[440px] h-[260px] sm:h-[340px] overflow-visible select-none">
+                        {/* Phone Container */}
+                        <div className="relative w-[300px] h-[600px] sm:w-[325px] sm:h-[650px] bg-slate-950 rounded-[45px] p-3.5 shadow-2xl border-[10px] border-slate-900 ring-4 ring-slate-800/20 z-10 flex flex-col overflow-hidden select-none">
                             
-                            {/* 1. MONITOR MOCKUP (Desktop - Background Center) */}
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[85%] aspect-[16/10] bg-slate-950 rounded-xl p-1 sm:p-1.5 shadow-2xl border border-slate-800 z-0 flex flex-col">
-                                {/* Browser Bar */}
-                                <div className="flex items-center gap-1 pb-1 border-b border-slate-800 text-[6px] sm:text-[8px] text-slate-500">
-                                    <div className="flex gap-0.5">
-                                        <span className="size-1 sm:size-1.5 rounded-full bg-rose-500/80"></span>
-                                        <span className="size-1 sm:size-1.5 rounded-full bg-amber-500/80"></span>
-                                        <span className="size-1 sm:size-1.5 rounded-full bg-emerald-500/80"></span>
-                                    </div>
-                                    <div className="flex-1 bg-slate-900/60 rounded px-1.5 py-0.2 mx-2 text-center text-[5px] sm:text-[7px] font-mono truncate">cifras.app/song/edit</div>
-                                </div>
-                                {/* Editor Workspace */}
-                                <div className="flex-1 bg-slate-900 text-slate-300 p-1.5 sm:p-2.5 rounded-b-lg flex flex-col text-[6px] sm:text-[8px] leading-tight text-left">
-                                    <div className="flex items-center justify-between border-b border-slate-800 pb-1 mb-1 sm:mb-2">
-                                        <span className="font-extrabold text-white flex items-center gap-0.5"><span className="material-symbols-outlined text-[8px] sm:text-[10px]">edit</span> Editar Música</span>
-                                        <span className="px-1 py-0.2 bg-primary/20 text-primary font-bold rounded">Salvo</span>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-1 mb-1 sm:mb-2">
-                                        <div>
-                                            <span className="text-[5px] sm:text-[7px] text-slate-500 font-bold block mb-0.2">Título</span>
-                                            <div className="bg-slate-950 p-0.5 rounded font-bold text-white truncate border border-slate-800">Garota de Ipanema</div>
-                                        </div>
-                                        <div>
-                                            <span className="text-[5px] sm:text-[7px] text-slate-500 font-bold block mb-0.2">Artista</span>
-                                            <div className="bg-slate-950 p-0.5 rounded font-semibold truncate border border-slate-800">Tom Jobim</div>
-                                        </div>
-                                        <div>
-                                            <span className="text-[5px] sm:text-[7px] text-slate-500 font-bold block mb-0.2">Tom</span>
-                                            <div className="bg-slate-950 p-0.5 rounded font-bold text-primary truncate border border-slate-800">G (Sol Maior)</div>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 bg-slate-950 p-1 sm:p-1.5 rounded border border-slate-800 font-mono text-slate-400 overflow-hidden leading-normal text-[5px] sm:text-[7px]">
-                                        <p className="text-primary font-bold">[Gmaj7]</p>
-                                        <p>Olha que coisa mais linda, mais cheia de graça</p>
-                                        <p className="text-primary font-bold">[A9]</p>
-                                        <p>É ela, menina, que vem e que passa</p>
-                                        <p className="text-primary font-bold">[Am7]                       [D7/9-]</p>
-                                        <p>Num doce balanço a caminho do mar</p>
-                                    </div>
-                                </div>
-                                {/* Monitor Stand */}
-                                <div className="absolute bottom-[-10px] sm:bottom-[-13px] left-1/2 -translate-x-1/2 w-10 sm:w-14 h-2.5 sm:h-3.5 bg-slate-800 rounded-t"></div>
-                                <div className="absolute bottom-[-12px] sm:bottom-[-16px] left-1/2 -translate-x-1/2 w-14 sm:w-20 h-0.5 sm:h-1 bg-slate-700 rounded-full"></div>
+                            {/* Dynamic Island */}
+                            <div className="absolute top-3 left-1/2 -translate-x-1/2 w-28 h-5.5 bg-black rounded-full z-30 flex items-center justify-between px-3">
+                                <span className="size-1 rounded-full bg-slate-800"></span>
+                                <span className="w-2.5 h-1.5 rounded-full bg-slate-900"></span>
                             </div>
 
-                            {/* 2. TABLET MOCKUP (Overlapping Bottom-Left) */}
-                            <div className="absolute bottom-1.5 left-[-15px] sm:left-[-25px] w-[50%] aspect-[3/4] bg-slate-950 rounded-xl p-1 shadow-2xl border border-slate-800 z-10 flex flex-col">
-                                {/* Tablet Screen */}
-                                <div className="bg-[#f8fafc] text-slate-900 flex-1 rounded-[10px] overflow-hidden flex flex-col p-1.5 sm:p-2.5 text-left relative">
-                                    <div className="flex justify-between items-center border-b border-slate-200 pb-1 mb-1 sm:mb-2 text-[6px] sm:text-[8px]">
-                                        <div>
-                                            <h4 className="font-extrabold text-slate-800 truncate">Garota de Ipanema</h4>
-                                            <p className="text-[5px] sm:text-[7px] text-slate-500 font-bold">Tom Jobim • Tom: G</p>
-                                        </div>
-                                        <span className="material-symbols-outlined text-[10px] sm:text-[14px] text-slate-400">arrow_downward</span>
+                            {/* Phone Screen Area */}
+                            <div className="bg-background-light dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 flex-1 rounded-[32px] overflow-hidden flex flex-col relative border border-slate-200 dark:border-slate-800">
+                                
+                                {/* Status Bar */}
+                                <div className="h-8 bg-[#1e293b]/95 text-white/90 px-6 flex items-center justify-between text-[10px] font-bold select-none z-20">
+                                    <span>09:41</span>
+                                    <div className="flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-[12px]">signal_cellular_4_bar</span>
+                                        <span className="text-[9px] font-bold">5G</span>
+                                        <span className="material-symbols-outlined text-[13px]">battery_5_bar</span>
                                     </div>
-                                    <div className="flex-1 text-[5px] sm:text-[7px] leading-relaxed text-slate-600 space-y-1">
-                                        <div className="text-slate-400 font-bold font-mono py-0.2 px-0.5 bg-slate-100 rounded inline-block text-[4px] sm:text-[6px]">P{'{12}'} (Introdução)</div>
-                                        <div>
-                                            <span className="text-primary font-bold mr-0.5 text-[5px] sm:text-[7px]">[Gmaj7]</span>
+                                </div>
+
+                                {/* App Header (Matches SongViewer.jsx style) */}
+                                <header className="flex-none z-20 w-full bg-[#1e293b]/95 backdrop-blur-md border-b border-white/5 px-4 py-3 flex items-center justify-between">
+                                    <div className="flex items-center justify-center size-8 rounded-full text-slate-400">
+                                        <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                                    </div>
+                                    <div className="flex-1 flex flex-col items-center justify-center mx-2 overflow-hidden text-center">
+                                        <h1 className="text-white text-xs font-extrabold truncate leading-tight">Garota de Ipanema</h1>
+                                        <div className="flex items-center gap-1 text-[9px] text-slate-400">
+                                            <span>Tom Jobim</span>
+                                            <span className="size-0.5 rounded-full bg-slate-500"></span>
+                                            <span>Orig: G</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <div className="flex items-center justify-center size-8 rounded-full text-slate-400">
+                                            <span className="material-symbols-outlined text-[16px]">edit</span>
+                                        </div>
+                                        <div className="flex items-center justify-center size-8 rounded-full text-slate-400">
+                                            <span className="material-symbols-outlined text-[16px]">playlist_add</span>
+                                        </div>
+                                    </div>
+                                </header>
+
+                                {/* Main Content (Song Lyrics & Chords) */}
+                                <div className="flex-1 overflow-y-auto no-scrollbar px-5 py-6 pb-48 font-mono text-xs text-left relative bg-background-light dark:bg-[#0f172a]">
+                                    
+                                    {/* Active custom pause banner */}
+                                    <div className="bg-primary text-white py-1.5 px-3 rounded-lg shadow-md font-sans text-[10px] font-extrabold flex items-center justify-between mb-4 animate-pulse">
+                                        <span className="flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-xs">schedule</span> 
+                                            Pausa Ativa: P{"{12}"}
+                                        </span>
+                                        <span className="bg-black/20 px-1.5 py-0.5 rounded text-[8px]">12s</span>
+                                    </div>
+
+                                    {/* Song Title and Artist in viewer body */}
+                                    <div className="border-b border-dashed border-slate-200 dark:border-slate-800 pb-3 mb-4 font-sans">
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-primary">MÚSICA 1 DE 1</span>
+                                        <h2 className="text-base font-black text-slate-900 dark:text-white mt-0.5">Garota de Ipanema</h2>
+                                        <p className="text-[10px] text-slate-500 font-medium">Tom Jobim</p>
+                                    </div>
+
+                                    {/* Section Badge */}
+                                    <p className="mt-4 mb-3 text-primary/80 font-bold text-[9px] uppercase tracking-widest font-sans bg-slate-100 dark:bg-white/5 inline-block px-1.5 py-0.5 rounded">
+                                        INTRODUÇÃO
+                                    </p>
+
+                                    {/* Cifra content */}
+                                    <div className="space-y-4 pt-2">
+                                        <div className="relative font-mono leading-[2.5] text-slate-800 dark:text-slate-200 text-[11px]">
+                                            <span className="relative inline-block w-0 h-0 align-baseline">
+                                                <span className="absolute left-0 bottom-0 -translate-y-[1.25em] text-primary font-bold text-[10px] leading-none whitespace-nowrap">Gmaj7</span>
+                                            </span>
                                             Olha que coisa mais linda, mais cheia de graça
                                         </div>
-                                        <div>
+                                        
+                                        <div className="relative font-mono leading-[2.5] text-slate-800 dark:text-slate-200 text-[11px]">
+                                            <span className="relative inline-block w-0 h-0 align-baseline">
+                                                <span className="absolute left-0 bottom-0 -translate-y-[1.25em] text-primary font-bold text-[10px] leading-none whitespace-nowrap">A9</span>
+                                            </span>
                                             É ela, menina, que vem e que passa
                                         </div>
-                                        <div>
-                                            <span className="text-primary font-bold mr-0.5 text-[5px] sm:text-[7px]">[A9]</span>
-                                            Num doce balanço a caminho do mar
+
+                                        <div className="relative font-mono leading-[2.5] text-slate-800 dark:text-slate-200 text-[11px]">
+                                            <span className="relative inline-block w-0 h-0 align-baseline">
+                                                <span className="absolute left-0 bottom-0 -translate-y-[1.25em] text-primary font-bold text-[10px] leading-none whitespace-nowrap">Am7</span>
+                                            </span>
+                                            Num doce balanço a caminho do
+                                            <span className="relative inline-block w-0 h-0 align-baseline">
+                                                <span className="absolute left-0 bottom-0 -translate-y-[1.25em] text-primary font-bold text-[10px] leading-none whitespace-nowrap">D7/9-</span>
+                                            </span>
+                                            mar
                                         </div>
                                     </div>
-                                    {/* Scrolling active banner */}
-                                    <div className="bg-primary/95 text-white py-0.5 px-1.5 rounded shadow text-[4px] sm:text-[6px] font-bold flex items-center justify-between animate-pulse">
-                                        <span className="flex items-center gap-0.5"><span className="material-symbols-outlined text-[6px] sm:text-[8px]">schedule</span> Pausa Ativa: 12s</span>
-                                        <span>Introdução</span>
-                                    </div>
                                 </div>
-                            </div>
 
-                            {/* 3. SMARTPHONE MOCKUP (Overlapping Bottom-Right) */}
-                            <div className="absolute bottom-0 right-[-15px] sm:right-[-25px] w-[30%] aspect-[9/19] bg-slate-950 rounded-xl p-0.5 shadow-2xl border border-slate-800 z-20 flex flex-col overflow-hidden">
-                                {/* Screen Content: Tuner */}
-                                <div className="bg-slate-900 text-white flex-1 rounded-[10px] overflow-hidden flex flex-col p-1 sm:p-2 text-[5px] sm:text-[7px] text-left relative">
-                                    <div className="text-center font-bold text-[6px] sm:text-[8px] text-slate-400 border-b border-slate-800 pb-0.5 mb-1 sm:mb-2">Afinador</div>
-                                    
-                                    {/* Tuner dial display */}
-                                    <div className="flex flex-col items-center flex-1 justify-center relative py-1 sm:py-2">
-                                        {/* Simple Dial Arc */}
-                                        <svg viewBox="0 0 100 60" className="w-full max-w-[50px] sm:max-w-[70px] overflow-visible">
-                                            <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#334155" strokeWidth="3" strokeLinecap="round" />
-                                            {/* Green center tick */}
-                                            <line x1="50" y1="10" x2="50" y2="16" stroke="#10b981" strokeWidth="1.5" />
-                                            {/* Needle aligned exactly at 0 degree (perfectly tuned) */}
-                                            <line x1="50" y1="50" x2="50" y2="12" stroke="#10b981" strokeWidth="2" strokeLinecap="round" />
-                                            <circle cx="50" cy="50" r="3" fill="#cbd5e1" />
-                                        </svg>
-                                        <span className="text-sm sm:text-base font-black text-emerald-500 leading-none mt-1 sm:mt-1.5 block">Lá</span>
-                                        <span className="text-[4px] sm:text-[6px] font-mono text-slate-400 block mt-0.2">110.0 Hz</span>
-                                        <span className="px-1 py-0.2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-full font-bold text-[3.5px] sm:text-[5.5px] uppercase tracking-wider mt-1 block">Afinado!</span>
+                                {/* Footer Controls (Matches SongViewer.jsx Controls style) */}
+                                <div className="absolute left-3 right-3 bottom-3.5 z-20 bg-white dark:bg-[#1a2332] border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl p-3 flex flex-col gap-3 backdrop-blur-xl bg-opacity-95 dark:bg-opacity-95">
+                                    <div className="flex items-center justify-between gap-3">
+                                        {/* Key Transpose */}
+                                        <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-lg p-0.5 border border-slate-200 dark:border-white/5">
+                                            <div className="size-8 flex items-center justify-center text-slate-400">
+                                                <span className="material-symbols-outlined text-sm">remove</span>
+                                            </div>
+                                            <div className="flex flex-col items-center w-8">
+                                                <span className="text-[7px] text-slate-400 font-bold uppercase">Key</span>
+                                                <span className="text-slate-900 dark:text-white font-extrabold text-xs leading-none">G</span>
+                                            </div>
+                                            <div className="size-8 flex items-center justify-center text-slate-400">
+                                                <span className="material-symbols-outlined text-sm">add</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Auto Scroll Toggle */}
+                                        <div className="flex-1 flex items-center justify-between px-3 h-9 rounded-lg bg-primary text-white shadow-md shadow-primary/10">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="material-symbols-outlined text-base">pause_circle</span>
+                                                <span className="font-extrabold text-[11px]">Auto-Scroll</span>
+                                            </div>
+                                            <span className="text-[8px] font-black px-1.5 py-0.5 rounded bg-black/20 text-white/90">
+                                                ON
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className="grid grid-cols-6 gap-0.5 font-bold text-center mt-1 pt-1 border-t border-slate-800 text-[4px] sm:text-[6px]">
-                                        <span className="bg-slate-800 text-slate-400 rounded py-0.2">1E</span>
-                                        <span className="bg-slate-800 text-slate-400 rounded py-0.2">2B</span>
-                                        <span className="bg-slate-800 text-slate-400 rounded py-0.2">3G</span>
-                                        <span className="bg-slate-800 text-slate-400 rounded py-0.2">4D</span>
-                                        <span className="bg-emerald-500 text-white rounded py-0.2 scale-105">5A</span>
-                                        <span className="bg-slate-800 text-slate-400 rounded py-0.2">6E</span>
+
+                                    {/* Speed Control Slider Mockup */}
+                                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                        <span className="material-symbols-outlined text-sm">speed</span>
+                                        <div className="flex-1 h-3 flex items-center">
+                                            <div className="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-lg relative">
+                                                <div className="absolute left-0 top-0 h-full w-[45%] bg-primary rounded-lg"></div>
+                                                <div className="absolute left-[45%] top-1/2 -translate-y-1/2 size-2 bg-primary rounded-full shadow"></div>
+                                            </div>
+                                        </div>
+                                        <span className="text-[10px] font-bold text-slate-800 dark:text-white w-6 text-right font-mono">1.2x</span>
+                                    </div>
+
+                                    {/* Font Size Control Slider Mockup */}
+                                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                        <span className="material-symbols-outlined text-sm">format_size</span>
+                                        <div className="flex-1 h-3 flex items-center">
+                                            <div className="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-lg relative">
+                                                <div className="absolute left-0 top-0 h-full w-[25%] bg-primary rounded-lg"></div>
+                                                <div className="absolute left-[25%] top-1/2 -translate-y-1/2 size-2 bg-primary rounded-full shadow"></div>
+                                            </div>
+                                        </div>
+                                        <span className="text-[10px] font-bold text-slate-800 dark:text-white w-6 text-right font-mono">14px</span>
                                     </div>
                                 </div>
+
                             </div>
-                            
                         </div>
                     </div>
                 </div>
