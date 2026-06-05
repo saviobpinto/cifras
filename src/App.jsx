@@ -12,6 +12,7 @@ import { SongProvider } from './contexts/SongContext';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Login';
+import LandingPage from './components/LandingPage';
 
 function App() {
   return (
@@ -31,8 +32,7 @@ function App() {
             <Route path="/tuner" element={<ProtectedRoute><Tuner /></ProtectedRoute>} />
             <Route path="/metronome" element={<ProtectedRoute><Metronome /></ProtectedRoute>} />
 
-            {/* Redirect root to dashboard */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<LandingPage />} />
           </Routes>
         </Router>
       </SongProvider>
