@@ -162,7 +162,7 @@ function Settings() {
             {/* Header */}
             <header className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
                 <div className="px-4 h-14 flex items-center justify-between">
-                    <button onClick={() => navigate(-1)} className="flex items-center text-primary active:opacity-70 transition-opacity">
+                    <button onClick={() => navigate('/dashboard')} className="flex items-center text-primary active:opacity-70 transition-opacity">
                         <span className="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
                         <span className="ml-1 text-base font-medium">{t('settings.home')}</span>
                     </button>
@@ -170,7 +170,7 @@ function Settings() {
                         <h1 className="text-lg font-bold leading-tight">{t('settings.title')}</h1>
                         <span className="text-[10px] text-slate-400 font-mono">v1.4 (PWA)</span>
                     </div>
-                    <button onClick={() => navigate(-1)} className="text-primary font-medium text-base active:opacity-70 transition-opacity">{t('settings.done')}</button>
+                    <button onClick={() => navigate('/dashboard')} className="text-primary font-medium text-base active:opacity-70 transition-opacity">{t('settings.done')}</button>
                 </div>
             </header>
             <main className="flex-1 overflow-y-auto pb-24">
