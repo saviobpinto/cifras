@@ -11,9 +11,10 @@ export const AuthProvider = ({ children }) => {
     return localStorage.getItem('cifras-app-offline') === 'true';
   });
 
-  // Estado da assinatura Premium
+  // Estado da assinatura Premium (lido do cache local ao iniciar)
   const [isPremium, setIsPremium] = useState(() => {
-    return localStorage.getItem('cifras-app-premium-mock') === 'true';
+    return localStorage.getItem('cifras-app-premium-mock') === 'true' || 
+           localStorage.getItem('cifras-app-premium-supabase') === 'true';
   });
 
   const enableOfflineMode = () => {
@@ -39,7 +40,10 @@ export const AuthProvider = ({ children }) => {
   // Carregar dados de assinatura
   const fetchProfile = async (currentUser) => {
     if (!currentUser) {
-      setIsPremium(localStorage.getItem('cifras-app-premium-mock') === 'true');
+      setIsPremium(
+        localStorage.getItem('cifras-app-premium-mock') === 'true' || 
+        localStorage.getItem('cifras-app-premium-supabase') === 'true'
+      );
       return;
     }
 
@@ -99,7 +103,10 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem('cifras-registered', 'true');
           fetchProfile(session.user);
       } else {
-          setIsPremium(localStorage.getItem('cifras-app-premium-mock') === 'true');
+          setIsPremium(
+            localStorage.getItem('cifras-app-premium-mock') === 'true' || 
+            localStorage.getItem('cifras-app-premium-supabase') === 'true'
+          );
           setLoading(false);
       }
     });
