@@ -119,7 +119,7 @@ function Settings() {
         reader.onload = (event) => {
             const result = importData(event.target.result);
             if (result.success) {
-                setImportMessage(`Backup importado com sucesso! ${result.count} setlist(s) adicionados.`);
+                setImportMessage(`Setlist importado com sucesso! ${result.count} setlist(s) adicionados.`);
             } else {
                 setImportMessage("Erro ao importar: " + result.error);
             }
@@ -390,7 +390,7 @@ function Settings() {
                             {/* Export Backup */}
                             <div onClick={() => {
                                 if (!isPremium) {
-                                    alert("A exportação de backups é uma funcionalidade exclusiva para assinantes Premium.");
+                                    alert("A exportação de setlists é uma funcionalidade exclusiva para assinantes Premium.");
                                     return;
                                 }
                                 setShowExportModal(true);
@@ -411,7 +411,7 @@ function Settings() {
                             {/* Import Backup */}
                             <div onClick={() => {
                                 if (!isPremium) {
-                                    alert("A importação de backups é uma funcionalidade exclusiva para assinantes Premium.");
+                                    alert("A importação de setlists é uma funcionalidade exclusiva para assinantes Premium.");
                                     return;
                                 }
                                 fileInputRef.current?.click();
@@ -564,7 +564,7 @@ function Settings() {
                 <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
                     <div className="bg-surface-light dark:bg-surface-dark w-full max-w-sm rounded-2xl shadow-xl overflow-hidden animate-slide-up flex flex-col max-h-[80vh]">
                         <div className="p-4 border-b border-border-light dark:border-border-dark flex justify-between items-center bg-surface-light dark:bg-surface-dark">
-                            <h3 className="font-bold text-lg">Exportar Backup</h3>
+                            <h3 className="font-bold text-lg">Exportar Setlist</h3>
                             <button onClick={() => setShowExportModal(false)} className="text-slate-500 hover:text-slate-800 dark:hover:text-white">
                                 <span className="material-symbols-outlined">close</span>
                             </button>
