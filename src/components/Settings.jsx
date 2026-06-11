@@ -11,7 +11,7 @@ import { supabase } from '../lib/supabase';
 function Settings() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
-    const { songs, theme, toggleTheme, importSongs, clearAllSongs, keepAwake, toggleKeepAwake, exportSetlists, importData, setlists, syncProgress, manualSync } = useSongs();
+    const { songs, theme, toggleTheme, importSongs, clearAllSongs, keepAwake, toggleKeepAwake, exportSetlists, exportSetlistsPDF, importData, setlists, syncProgress, manualSync } = useSongs();
     const { t, i18n } = useTranslation();
     const { user, isPremium } = useAuth();
     const isDark = theme === 'dark';
@@ -67,6 +67,7 @@ function Settings() {
     const [importMessage, setImportMessage] = useState('');
     const [showExportModal, setShowExportModal] = useState(false);
     const [selectedSetlists, setSelectedSetlists] = useState([]);
+    const [exportFormat, setExportFormat] = useState('json');
     const fileInputRef = useRef(null);
 
     // Estados para o fluxo de alteração de senha
@@ -393,6 +394,8 @@ function Settings() {
                                     alert("A exportação de setlists é uma funcionalidade exclusiva para assinantes Premium.");
                                     return;
                                 }
+                                setExportFormat('json');
+                                setSelectedSetlists([]);
                                 setShowExportModal(true);
                             }} className="flex items-center justify-between p-4 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors cursor-pointer group">
                                 <div className="flex items-center gap-3">
@@ -570,6 +573,29 @@ function Settings() {
                             </button>
                         </div>
                         <div className="p-4 overflow-y-auto min-h-[50px] no-scrollbar">
+                            {/* Format Selector */}
+                            <div className="mb-4">
+                                <span className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                                    Formato de Exportação
+                                </span>
+                                <div className="grid grid-cols-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                                    <button
+                                        type="button"
+                                        onClick={() => setExportFormat('json')}
+                                        className={`py-2 rounded-lg text-xs font-bold transition-all ${exportFormat === 'json' ? 'bg-white dark:bg-slate-700 shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                    >
+                                        JSON (Backup)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setExportFormat('pdf')}
+                                        className={`py-2 rounded-lg text-xs font-bold transition-all ${exportFormat === 'pdf' ? 'bg-white dark:bg-slate-700 shadow-sm text-primary' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                    >
+                                        PDF (Livro de Cifras)
+                                    </button>
+                                </div>
+                            </div>
+
                             {setlists.length === 0 ? (
                                 <p className="text-sm text-slate-500">Nenhum setlist encontrado.</p>
                             ) : (
@@ -603,17 +629,31 @@ function Settings() {
                         </div>
                         <div className="p-4 border-t border-border-light dark:border-border-dark flex flex-col gap-3">
                             <button
-                                onClick={() => { exportSetlists(); setShowExportModal(false); }}
+                                onClick={() => {
+                                    if (exportFormat === 'pdf') {
+                                        exportSetlistsPDF();
+                                    } else {
+                                        exportSetlists();
+                                    }
+                                    setShowExportModal(false);
+                                }}
                                 className="w-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white py-3 rounded-xl font-bold transition-all text-sm"
                             >
-                                Exportar Tudo (Biblioteca Completa)
+                                {exportFormat === 'pdf' ? "Gerar PDF (Biblioteca Completa)" : "Exportar Tudo (Biblioteca Completa)"}
                             </button>
                             <button
                                 disabled={selectedSetlists.length === 0 && setlists.length > 0}
-                                onClick={() => { exportSetlists(selectedSetlists); setShowExportModal(false); }}
+                                onClick={() => {
+                                    if (exportFormat === 'pdf') {
+                                        exportSetlistsPDF(selectedSetlists);
+                                    } else {
+                                        exportSetlists(selectedSetlists);
+                                    }
+                                    setShowExportModal(false);
+                                }}
                                 className="w-full bg-primary hover:bg-primary-light text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 text-sm"
                             >
-                                Exportar Selecionados ({selectedSetlists.length})
+                                {exportFormat === 'pdf' ? `Gerar PDF (Selecionados: ${selectedSetlists.length})` : `Exportar Selecionados (${selectedSetlists.length})`}
                             </button>
                         </div>
                     </div>
