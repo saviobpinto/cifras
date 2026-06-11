@@ -595,7 +595,7 @@ export function SongProvider({ children }) {
 <!DOCTYPE html>
 <html>
 <head>
-    <title>\${title}</title>
+    <title>${title}</title>
     <meta charset="utf-8">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
@@ -721,55 +721,55 @@ export function SongProvider({ children }) {
     </style>
 </head>
 <body>
-    \${processedSongs.map(song => {
-        return \`
+    ${processedSongs.map(song => {
+        return `
             <div class="song-page">
                 <div class="song-header">
-                    <h2 class="song-title">\${song.title}</h2>
-                    <p class="song-artist">\${song.artist}</p>
+                    <h2 class="song-title">${song.title}</h2>
+                    <p class="song-artist">${song.artist}</p>
                     <div class="song-meta">
-                        \${song.key ? \`<span>Tom: \${song.key}</span>\` : ''}
-                        \${song.capo ? \`<span>Capo: \${song.capo}</span>\` : ''}
-                        \${song.bpm ? \`<span>BPM: \${song.bpm}</span>\` : ''}
+                        ${song.key ? `<span>Tom: ${song.key}</span>` : ''}
+                        ${song.capo ? `<span>Capo: ${song.capo}</span>` : ''}
+                        ${song.bpm ? `<span>BPM: ${song.bpm}</span>` : ''}
                     </div>
                 </div>
                 <div class="song-content">
-                    \${song.parsedLines.map(line => {
+                    ${song.parsedLines.map(line => {
                         if (line.type === 'section') {
-                            return \`<div class="section-header">\${line.label}</div>\`;
+                            return `<div class="section-header">${line.label}</div>`;
                         }
                         if (line.type === 'lyrics') {
-                            return \`<div style="margin-bottom: 6px;">\${line.content || '&nbsp;'}</div>\`;
+                            return `<div style="margin-bottom: 6px;">${line.content || '&nbsp;'}</div>`;
                         }
                         
                         const lineHasLyrics = line.segments?.some(seg => seg.lyrics && seg.lyrics.trim() !== '');
-                        return \`
-                            <div class="chord-line" style="line-height: \${lineHasLyrics ? '2.5' : '1.2'};">
-                                \${line.segments.map(seg => {
+                        return `
+                            <div class="chord-line" style="line-height: ${lineHasLyrics ? '2.5' : '1.2'};">
+                                ${line.segments.map(seg => {
                                     const chordText = seg.chord || '';
                                     const lyricsText = seg.lyrics || '';
                                     if (lineHasLyrics) {
-                                        return \`
+                                        return `
                                             <span class="segment">
-                                                \${chordText ? \`<span class="chord">\${chordText}</span>\` : ''}
-                                                <span class="lyrics">\${lyricsText || '&nbsp;'}</span>
+                                                ${chordText ? `<span class="chord">${chordText}</span>` : ''}
+                                                <span class="lyrics">${lyricsText || '&nbsp;'}</span>
                                             </span>
-                                        \`;
+                                        `;
                                     } else {
-                                        return \`
+                                        return `
                                             <span class="segment">
-                                                \${chordText ? \`<span style="color: #3b82f6; font-weight: bold;">\${chordText}</span>\` : ''}
-                                                <span class="lyrics">\${lyricsText}</span>
+                                                ${chordText ? `<span style="color: #3b82f6; font-weight: bold;">${chordText}</span>` : ''}
+                                                <span class="lyrics">${lyricsText}</span>
                                             </span>
-                                        \`;
+                                        `;
                                     }
                                 }).join('')}
                             </div>
-                        \`;
+                        `;
                     }).join('')}
                 </div>
             </div>
-        \`;
+        `;
     }).join('')}
     <script>
         window.onload = function() {
