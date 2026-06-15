@@ -512,13 +512,15 @@ function SongViewer() {
             </main>
 
             {/* Footer Controls Container */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xl px-4 z-30 pointer-events-none flex items-end justify-between gap-3 pb-safe">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xl px-4 z-30 pointer-events-none flex flex-col items-end gap-3 pb-safe">
                 {/* Settings Panel */}
                 <div className={cn(
-                    "flex-1 transition-all duration-500 ease-in-out pointer-events-auto",
-                    showSettings ? "translate-y-0 opacity-100" : "translate-y-48 opacity-0 pointer-events-none"
+                    "absolute bottom-20 left-4 right-4 transition-all duration-300 ease-in-out pointer-events-auto",
+                    showSettings 
+                        ? "opacity-100 scale-100 translate-y-0" 
+                        : "opacity-0 scale-95 translate-y-4 pointer-events-none"
                 )}>
-                    <div className="bg-white dark:bg-[#1a2332] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl p-3 flex flex-col gap-4 backdrop-blur-xl bg-opacity-95 dark:bg-opacity-95">
+                    <div className="bg-white dark:bg-[#1a2332] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl p-4 flex flex-col gap-4 backdrop-blur-xl bg-opacity-95 dark:bg-opacity-95">
                         {/* Navigation Bar for Mobile */}
                         <div className="flex items-center justify-between md:hidden pb-2 border-b border-slate-100 dark:border-white/5">
                             <button disabled={!prevSongId && activeSongIndex === 0} onClick={handlePrevSong} className="p-2 text-slate-400 disabled:opacity-20 hover:text-primary">
