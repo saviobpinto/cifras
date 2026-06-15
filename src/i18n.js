@@ -100,7 +100,7 @@ const resources = {
             "library": {
                 "title": "Library",
                 "songsCount": "{{count}} Songs",
-                "searchPlaceholder": "Search songs, artists, lyrics...",
+                "searchPlaceholder": "Search songs or artists",
                 "noSongsYet": "No songs yet",
                 "startBuilding": "Start building your repertoire by adding your first song.",
                 "addSong": "Add Song",
@@ -234,7 +234,7 @@ const resources = {
             "library": {
                 "title": "Biblioteca",
                 "songsCount": "{{count}} Músicas",
-                "searchPlaceholder": "Buscar músicas, artistas, letras...",
+                "searchPlaceholder": "Buscar músicas ou artistas",
                 "noSongsYet": "Nenhuma música ainda",
                 "startBuilding": "Comece a construir seu repertório adicionando sua primeira música.",
                 "addSong": "Nova Música",

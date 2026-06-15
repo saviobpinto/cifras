@@ -21,6 +21,7 @@ function SongViewer() {
     const [activeSongIndex, setActiveSongIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [pauseTimeRemaining, setPauseTimeRemaining] = useState(0);
+    const [showSettings, setShowSettings] = useState(false);
 
     const scrollContainerRef = useRef(null);
     const lineRefs = useRef({});
@@ -228,7 +229,15 @@ function SongViewer() {
         return () => clearInterval(intervalId);
     }, [isPlaying, activeSong, activeSongIndex, pauseTimeRemaining, setlistId, setlists, nextSongId, navigateToSong, viewerSongs.length]);
 
-    const togglePlay = () => setIsPlaying(!isPlaying);
+    const togglePlay = () => {
+        setIsPlaying(prev => {
+            const next = !prev;
+            if (next) {
+                setShowSettings(false);
+            }
+            return next;
+        });
+    };
 
     const handleTranspose = (amount) => {
         if (!activeSong) return;
@@ -502,97 +511,128 @@ function SongViewer() {
                 </div>
             </main>
 
-            {/* Footer Controls */}
-            <div className={cn(
-                "absolute left-4 right-4 z-30 transition-all duration-500 ease-in-out",
-                isPlaying ? "-bottom-40 opacity-0 pointer-events-none" : "bottom-6 opacity-100"
-            )}>
-                <div className="bg-white dark:bg-[#1a2332] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl p-3 flex flex-col gap-4 backdrop-blur-xl bg-opacity-95 dark:bg-opacity-95">
-                    {/* Navigation Bar for Mobile */}
-                    <div className="flex items-center justify-between md:hidden pb-2 border-b border-slate-100 dark:border-white/5">
-                        <button disabled={!prevSongId && activeSongIndex === 0} onClick={handlePrevSong} className="p-2 text-slate-400 disabled:opacity-20 hover:text-primary">
-                            <span className="material-symbols-outlined">skip_previous</span>
-                        </button>
-                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">{setlistId ? 'Setlist' : 'Library'}</span>
-                        <button disabled={!nextSongId && activeSongIndex === viewerSongs.length - 1} onClick={handleNextSong} className="p-2 text-slate-400 disabled:opacity-20 hover:text-primary">
-                            <span className="material-symbols-outlined">skip_next</span>
-                        </button>
-                    </div>
-
-                    <div className="flex items-center justify-between gap-4">
-                        {/* Key Transpose */}
-                        <div className="flex items-center bg-slate-100 dark:bg-background-dark rounded-lg p-1 border border-slate-200 dark:border-white/5">
-                            <button
-                                onClick={() => handleTranspose(-1)}
-                                className="size-10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 rounded-md transition-colors active:scale-95"
-                            >
-                                <span className="material-symbols-outlined text-xl">remove</span>
+            {/* Footer Controls Container */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-xl px-4 z-30 pointer-events-none flex items-end justify-between gap-3 pb-safe">
+                {/* Settings Panel */}
+                <div className={cn(
+                    "flex-1 transition-all duration-500 ease-in-out pointer-events-auto",
+                    showSettings ? "translate-y-0 opacity-100" : "translate-y-48 opacity-0 pointer-events-none"
+                )}>
+                    <div className="bg-white dark:bg-[#1a2332] border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl p-3 flex flex-col gap-4 backdrop-blur-xl bg-opacity-95 dark:bg-opacity-95">
+                        {/* Navigation Bar for Mobile */}
+                        <div className="flex items-center justify-between md:hidden pb-2 border-b border-slate-100 dark:border-white/5">
+                            <button disabled={!prevSongId && activeSongIndex === 0} onClick={handlePrevSong} className="p-2 text-slate-400 disabled:opacity-20 hover:text-primary">
+                                <span className="material-symbols-outlined">skip_previous</span>
                             </button>
-                            <div className="flex flex-col items-center w-14">
-                                <span className="text-xs text-slate-500 font-medium uppercase">Key</span>
-                                <span className="text-slate-900 dark:text-white font-bold text-base leading-none">
-                                    {currentKey}
-                                </span>
-                            </div>
-                            <button
-                                onClick={() => handleTranspose(1)}
-                                className="size-10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 rounded-md transition-colors active:scale-95"
-                            >
-                                <span className="material-symbols-outlined text-xl">add</span>
+                            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">{setlistId ? 'Setlist' : 'Library'}</span>
+                            <button disabled={!nextSongId && activeSongIndex === viewerSongs.length - 1} onClick={handleNextSong} className="p-2 text-slate-400 disabled:opacity-20 hover:text-primary">
+                                <span className="material-symbols-outlined">skip_next</span>
                             </button>
                         </div>
 
-                        {/* Auto Scroll Toggle */}
-                        <button
-                            onClick={togglePlay}
-                            className={cn(
-                                "flex-1 flex items-center justify-between px-4 h-12 rounded-lg shadow-lg transition-all group",
-                                isPlaying ? "bg-primary text-white shadow-primary/20 active:bg-primary/90" : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-                            )}
-                        >
-                            <div className="flex items-center gap-2">
-                                <span className="material-symbols-outlined fill-current">{isPlaying ? 'pause_circle' : 'play_circle'}</span>
-                                <span className="font-bold">Auto-Scroll</span>
+                        <div className="flex items-center justify-between gap-4">
+                            {/* Key Transpose */}
+                            <div className="flex items-center bg-slate-100 dark:bg-background-dark rounded-lg p-1 border border-slate-200 dark:border-white/5 w-full justify-between">
+                                <button
+                                    onClick={() => handleTranspose(-1)}
+                                    className="size-10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 rounded-md transition-colors active:scale-95"
+                                >
+                                    <span className="material-symbols-outlined text-xl">remove</span>
+                                </button>
+                                <div className="flex flex-col items-center w-14">
+                                    <span className="text-xs text-slate-500 font-medium uppercase">Key</span>
+                                    <span className="text-slate-900 dark:text-white font-bold text-base leading-none">
+                                        {currentKey}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => handleTranspose(1)}
+                                    className="size-10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 rounded-md transition-colors active:scale-95"
+                                >
+                                    <span className="material-symbols-outlined text-xl">add</span>
+                                </button>
                             </div>
-                            <span className={cn("text-xs font-medium px-2 py-0.5 rounded", isPlaying ? "bg-black/20 text-white/90" : "bg-black/10 text-slate-500")}>
-                                {isPlaying ? 'ON' : 'OFF'}
-                            </span>
-                        </button>
-                    </div>
-
-                    {/* Speed Control */}
-                    <div className="flex items-center gap-3 px-1 pb-1 pt-1 duration-300">
-                        <span className="material-symbols-outlined text-slate-500 text-lg">speed</span>
-                        <div className="relative flex-1 h-8 flex items-center group">
-                            <input
-                                type="range"
-                                min="0.1"
-                                max="3"
-                                step="0.1"
-                                value={activeSong?.scrollSpeed || 1}
-                                onChange={(e) => updateSongSetting(activeSong.id, 'scrollSpeed', parseFloat(e.target.value))}
-                                className="w-full h-1.5 bg-slate-300 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
-                            />
                         </div>
-                        <span className="text-slate-900 dark:text-white font-medium w-8 text-right tabular-nums">{activeSong?.scrollSpeed || 1}x</span>
-                    </div>
 
-                    {/* Font Size Control */}
-                    <div className="flex items-center gap-3 px-1 pb-1 pt-1 duration-300">
-                        <span className="material-symbols-outlined text-slate-500 text-lg">format_size</span>
-                        <div className="relative flex-1 h-8 flex items-center group">
-                            <input
-                                type="range"
-                                min="12"
-                                max="32"
-                                step="1"
-                                value={activeSong?.fontSize || 14}
-                                onChange={(e) => updateSongSetting(activeSong.id, 'fontSize', parseInt(e.target.value))}
-                                className="w-full h-1.5 bg-slate-300 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
-                            />
+                        {/* Speed Control */}
+                        <div className="flex items-center gap-3 px-1 pb-1 pt-1 duration-300">
+                            <span className="material-symbols-outlined text-slate-500 text-lg">speed</span>
+                            <div className="relative flex-1 h-8 flex items-center group">
+                                <input
+                                    type="range"
+                                    min="0.1"
+                                    max="3"
+                                    step="0.1"
+                                    value={activeSong?.scrollSpeed || 1}
+                                    onChange={(e) => updateSongSetting(activeSong.id, 'scrollSpeed', parseFloat(e.target.value))}
+                                    className="w-full h-1.5 bg-slate-300 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
+                                />
+                            </div>
+                            <span className="text-slate-900 dark:text-white font-medium w-8 text-right tabular-nums">{activeSong?.scrollSpeed || 1}x</span>
                         </div>
-                        <span className="text-slate-900 dark:text-white font-medium w-8 text-right tabular-nums">{activeSong?.fontSize || 14}px</span>
+
+                        {/* Font Size Control */}
+                        <div className="flex items-center gap-3 px-1 pb-1 pt-1 duration-300">
+                            <span className="material-symbols-outlined text-slate-500 text-lg">format_size</span>
+                            <div className="relative flex-1 h-8 flex items-center group">
+                                <input
+                                    type="range"
+                                    min="12"
+                                    max="32"
+                                    step="1"
+                                    value={activeSong?.fontSize || 14}
+                                    onChange={(e) => updateSongSetting(activeSong.id, 'fontSize', parseInt(e.target.value))}
+                                    className="w-full h-1.5 bg-slate-300 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-primary"
+                                />
+                            </div>
+                            <span className="text-slate-900 dark:text-white font-medium w-8 text-right tabular-nums">{activeSong?.fontSize || 14}px</span>
+                        </div>
                     </div>
+                </div>
+
+                {/* Controls Group */}
+                <div className="flex items-center gap-2 pointer-events-auto flex-shrink-0">
+                    {/* Settings Toggle Button */}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setShowSettings(prev => !prev);
+                        }}
+                        className={cn(
+                            "size-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 pointer-events-auto cursor-pointer",
+                            isPlaying
+                                ? "scale-0 opacity-0 pointer-events-none w-0"
+                                : "scale-100 opacity-100 w-12",
+                            showSettings
+                                ? "bg-primary text-white"
+                                : "bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700"
+                        )}
+                    >
+                        <span className={cn(
+                            "material-symbols-outlined text-2xl transition-transform duration-300",
+                            showSettings && "rotate-90"
+                        )}>
+                            tune
+                        </span>
+                    </button>
+
+                    {/* Play/Pause FAB */}
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            togglePlay();
+                        }}
+                        className={cn(
+                            "size-14 rounded-full flex items-center justify-center shadow-xl transition-all duration-300 active:scale-90 pointer-events-auto flex-shrink-0 cursor-pointer",
+                            isPlaying 
+                                ? "bg-red-500 hover:bg-red-600 text-white shadow-red-500/20" 
+                                : "bg-primary hover:bg-primary-dark text-white shadow-primary/20"
+                        )}
+                    >
+                        <span className="material-symbols-outlined text-3xl font-bold fill-current">
+                            {isPlaying ? 'pause' : 'play_arrow'}
+                        </span>
+                    </button>
                 </div>
             </div>
         </div>
