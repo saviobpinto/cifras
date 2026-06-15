@@ -625,14 +625,14 @@ function SongViewer() {
                             togglePlay();
                         }}
                         className={cn(
-                            "size-14 rounded-full flex items-center justify-center transition-all duration-300 active:scale-90 pointer-events-auto flex-shrink-0 cursor-pointer",
+                            "size-14 rounded-full flex items-center justify-center transition-all duration-300 active:scale-90 pointer-events-auto flex-shrink-0 cursor-pointer ios-assistive-touch",
                             isPlaying 
-                                ? "ios-assistive-touch-playing" 
-                                : "ios-assistive-touch"
+                                ? "scale-0 opacity-0 pointer-events-none w-0" 
+                                : "scale-100 opacity-100 w-14"
                         )}
                     >
                         <span className="material-symbols-outlined text-3xl font-bold fill-current">
-                            {isPlaying ? 'pause' : 'play_arrow'}
+                            play_arrow
                         </span>
                     </button>
                 </div>
