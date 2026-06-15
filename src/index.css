@@ -51,3 +51,35 @@
 .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
 }
+
+/* Custom iOS-style translucent buttons */
+.ios-assistive-touch {
+    background-color: rgba(15, 23, 42, 0.35) !important; /* slate-900 at 35% opacity */
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+.ios-assistive-touch:active {
+    background-color: rgba(15, 23, 42, 0.5) !important;
+}
+
+.ios-assistive-touch-active {
+    background-color: rgba(59, 130, 246, 0.45) !important; /* blue at 45% opacity */
+    border: 1px solid rgba(59, 130, 246, 0.4) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 32px 0 rgba(59, 130, 246, 0.25) !important;
+}
+
+.ios-assistive-touch-playing {
+    background-color: rgba(239, 68, 68, 0.4) !important; /* red at 40% opacity for active pause */
+    border: 1px solid rgba(239, 68, 68, 0.35) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 32px 0 rgba(239, 68, 68, 0.2) !important;
+}

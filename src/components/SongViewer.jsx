@@ -601,13 +601,13 @@ function SongViewer() {
                             setShowSettings(prev => !prev);
                         }}
                         className={cn(
-                            "size-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 pointer-events-auto cursor-pointer border backdrop-blur-md",
+                            "size-12 rounded-full flex items-center justify-center transition-all duration-300 pointer-events-auto cursor-pointer",
                             isPlaying
                                 ? "scale-0 opacity-0 pointer-events-none w-0"
                                 : "scale-100 opacity-100 w-12",
                             showSettings
-                                ? "bg-primary/30 border-primary/30 text-primary dark:bg-primary/40 dark:text-primary-light"
-                                : "bg-white/40 border-slate-200/50 text-slate-700 dark:bg-slate-800/40 dark:border-white/10 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-800/60"
+                                ? "ios-assistive-touch-active"
+                                : "ios-assistive-touch"
                         )}
                     >
                         <span className={cn(
@@ -625,10 +625,10 @@ function SongViewer() {
                             togglePlay();
                         }}
                         className={cn(
-                            "size-14 rounded-full flex items-center justify-center shadow-xl transition-all duration-300 active:scale-90 pointer-events-auto flex-shrink-0 cursor-pointer border backdrop-blur-md",
+                            "size-14 rounded-full flex items-center justify-center transition-all duration-300 active:scale-90 pointer-events-auto flex-shrink-0 cursor-pointer",
                             isPlaying 
-                                ? "bg-red-500/20 border-red-500/30 text-red-600 dark:bg-red-500/30 dark:text-red-400 hover:bg-red-500/35 shadow-red-500/5" 
-                                : "bg-primary/20 border-primary/30 text-primary dark:bg-primary/30 dark:text-primary-light hover:bg-primary/25 shadow-primary/5"
+                                ? "ios-assistive-touch-playing" 
+                                : "ios-assistive-touch"
                         )}
                     >
                         <span className="material-symbols-outlined text-3xl font-bold fill-current">
