@@ -41,13 +41,17 @@ function Library() {
     const [displayCount, setDisplayCount] = useState(50);
 
     const filteredSongs = useMemo(() => {
-        const query = deferredQuery.toLowerCase().trim();
+        const normalize = (str) => {
+            return (str || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        };
+
+        const query = normalize(deferredQuery).trim();
         let results = songs;
 
         if (query) {
             results = songs.filter(song =>
-                song.title.toLowerCase().includes(query) ||
-                song.artist.toLowerCase().includes(query)
+                normalize(song.title).includes(query) ||
+                normalize(song.artist).includes(query)
             );
         }
 
