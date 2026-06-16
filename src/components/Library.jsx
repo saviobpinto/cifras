@@ -91,16 +91,7 @@ function Library() {
         return groupedByArtist.artists.slice(0, displayCount);
     }, [groupedByArtist.artists, displayCount]);
 
-    // Auto-expand all matching artists when searching in artist mode
-    useEffect(() => {
-        if (deferredQuery && viewMode === 'artist') {
-            const autoExpand = {};
-            groupedByArtist.artists.forEach(artist => {
-                autoExpand[artist] = true;
-            });
-            setExpandedArtists(autoExpand);
-        }
-    }, [deferredQuery, viewMode, groupedByArtist.artists]);
+
 
     const toggleArtist = (artist) => {
         setExpandedArtists(prev => ({
